@@ -29,6 +29,7 @@ void graph();
 void drawLine();
 void drawMark();
 void convertData();
+void FourData();
 
 //////graph buffer/////////
 float _circularBuffer[128]; //fast way to store values (rather than an ArrayList with remove calls)
@@ -41,19 +42,19 @@ int _graphHeight = SCREEN_HEIGHT - 22;  //default 24
 uint8_t Data[116];  //Data buffer for serial read
 
 int secl;     //byte 0 counter
-int MAP;      //byte 4 (lowByte) and 5 (highByte)
-int IAT;      //byte 6
-int CLT;      //byte 7
+uint8_t MAP;      //byte 4 (lowByte) and 5 (highByte)
+uint8_t IAT;      //byte 6
+uint8_t CLT;      //byte 7
 float BAT;    //byte 9
 float AFR;    //byte 10
-int EGO;      //byte 11
-int RPM;      //byte 14 (lowByte) and 15 (highByte)
+uint8_t EGO;      //byte 11
+uint16_t RPM;      //byte 14 (lowByte) and 15 (highByte)
 float AFR_T;  //byte 19
-int advance;  //btye 23
-int TPS;      //byte 24
-int MAPdot;   //gyte 92
-int VSS;      //byte 101 (lowByte) and 102 (highByte)
-int gear;     //byte 103
+uint8_t advance;  //btye 23
+uint8_t TPS;      //byte 24
+uint8_t MAPdot;   //gyte 92
+uint16_t VSS;      //byte 101 (lowByte) and 102 (highByte)
+uint8_t gear;     //byte 103
 
 float PSI;    //byte MAP to psi conversion
 
@@ -71,7 +72,7 @@ bool flag;
 
 /////// case //////////
 byte Case = 0;
-byte maxCase = 12;
+byte maxCase = 9;
 
 
 void setup() {
@@ -79,7 +80,8 @@ void setup() {
   pinMode(button1, INPUT_PULLUP);
   pinMode(button2, INPUT_PULLUP);
 
-  Serial1.begin(115200);  //  console Serial 
+  Serial1.begin(115200);
+ // Serial.begin(115200); //  console Serial 
 
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
@@ -94,11 +96,12 @@ void setup() {
 void loop() {
   
   GetData();
+  convertData();
   Button1();
   Button2();
   delay(25);
   
-  if(flag == 1) displayCase(Case); // if serial return A continue
+  if(flag == 1) displayCase(Case); // if first serial byte is ok display
   
   else ;
     
@@ -106,13 +109,15 @@ void loop() {
 
 //******** get serial data *************//
 void GetData(void){
-  byte i = 0;
+  
+  /*byte i = 0;
   byte firstByte = 0;
   
   Serial1.write("A");
   
   if (Serial1.available()){
     firstByte = Serial1.read();
+    Serial.println((char)firstByte);
   }
   
   if (firstByte == 'A') flag = 1; //
@@ -122,6 +127,49 @@ void GetData(void){
     Data[i] = Serial1.read();
     i++;
   }
+  Serial.println(Data[0]);
+  */
+  byte i = 0;
+  byte firstByte = 0;
+  byte cmdr = 0; //cmd recived
+
+  uint8_t canID = 0;
+  uint8_t cmd = 0x30;
+  uint8_t offset1 = 0;
+  uint8_t offset2 = 0;
+  uint8_t lenght1 = 116;
+  uint8_t lenght2 = 0;
+  
+  Serial1.write("r");
+  Serial1.write(canID); //canID
+  Serial1.write(cmd);  // cmd
+  Serial1.write(offset1); //offset
+  Serial1.write(offset2); //offset
+  Serial1.write(lenght1);  //length
+  Serial1.write(lenght2);  //length
+  
+  if (Serial1.available()){
+    firstByte = Serial1.read();
+    cmdr = Serial1.read();// will be 0x30
+    //Serial.println((char)firstByte);
+  }
+  
+  if (firstByte == 'r') flag = 1; //to throw out data out of order
+  else flag = 0;
+  
+   if(Serial1.available()){ //read the serial buffer
+    for(i; i<= lenght1; i++){
+      Data[i] = Serial1.read();
+      //Serial.println(Data[i]);
+    }
+  }
+
+    //serial passtrought for test
+  /*Serial1.write(Serial.read());
+  
+  if (Serial1.available()){
+    Serial.println(Serial1.read());
+  }*/
 }
 
 /////////// LCD refresh //////////////////
@@ -178,7 +226,6 @@ void displayCase(byte X){
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setFont(&FreeSansBold9pt7b);
-  convertData();
 
   if (Case > maxCase) {
         Case = 0;
@@ -222,32 +269,43 @@ void displayCase(byte X){
     break;
 
     case 4:
-    updateScreen("  RPM", RPM, "");
+    updateScreen("Speed", VSS, "Km/h", 80);
+    display.setTextSize(1);
+    display.setCursor(100, 25);
+    display.print(gear);
     break;
 
     case 5:
-    updateScreen("Speed", VSS, "Km/h", 80);
+    updateScreen("  RPM", RPM, "");
     break;
 
     case 6:
-    updateScreen("  IAT", IAT, "°C", 100);
+    FourData();
     break;
 
     case 7:
-    graph(IAT, 0, 150, "deg", 0);
-    drawMark(20, 150, 100);
-    break;
-
-    case 8:
-    updateScreen("  CLT", CLT, "°C", 100);
-    break;
-
-    case 9:
     Case--;
     break;
 
+    case 8:
+    display.setTextSize(1);
+    display.setCursor(10, 32);
+    display.print(" Reset ECU?");
+    break;
+
+    case 9:
+    display.setTextSize(1);
+    display.setCursor(10, 32);
+    display.print(" Resetting...");
+    display.display();
+    delay(1000);
+    Serial1.write("U");
+    delay(2000);
+    Case = 0;
+    break;
+  
     case 10:
-    updateScreen("  TPS", TPS, "%", 100);
+    updateScreen("  IAT", IAT, "°C", 100);
     break;
 
     case 11:
@@ -255,8 +313,29 @@ void displayCase(byte X){
     break;
 
     case 12:
+    updateScreen("  CLT", CLT, "°C", 100);
+    break;
+
+    case 13:
+    Case--;
+    break;
+
+    case 14:
+    updateScreen("  TPS", TPS, "%", 100);
+    break;
+
+    case 15:
+    Case--;
+    break;
+
+    case 16:
     updateScreen("  BAT", BAT, " V", 100, 1);
     break;
+
+    case 17:
+    Case--;
+    break;
+
 
   }
   display.display();
@@ -390,9 +469,40 @@ void convertData(){
   advance = Data[23];
   TPS = Data[24];
   MAPdot = Data[92];
-  VSS = (int)((Data[101] << 8) | Data[102]); //combine the high and low byte
+  VSS = (int)((Data[102] << 8) | Data[101]); //combine the high and low byte
   gear = Data[103];
 
   PSI = ((float)MAP*0.145) - 14.5; //convert Kpa to psi
 
+}
+
+
+////////4 Data display////////////
+void FourData(){
+  
+
+  display.drawLine(64, 0, 64, 64, WHITE);
+  display.drawLine(0, 32, 128, 32, WHITE);
+
+  display.setFont();
+  display.setTextSize(1);
+  display.setCursor(20, 0);
+  display.print("IAT C");
+  display.setCursor(85, 0);
+  display.print("CLT C");
+  display.setCursor(20, 34);
+  display.print("BAT V");
+  display.setCursor(85, 34);
+  display.print("AFR");
+  
+  display.setFont(&FreeSansBold9pt7b);
+  display.setTextSize(1);
+  display.setCursor(10, 25);
+  display.print(IAT);
+  display.setCursor(76, 25);
+  display.print(CLT);
+  display.setCursor(10, 60);
+  display.print(BAT, 1);
+  display.setCursor(76, 60);
+  display.print(AFR, 1);
 }
