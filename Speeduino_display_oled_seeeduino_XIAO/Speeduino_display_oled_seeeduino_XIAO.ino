@@ -28,26 +28,34 @@ void displayCase();
 void graph();
 void drawLine();
 void drawMark();
+void convertData();
 
 //////graph buffer/////////
 float _circularBuffer[128]; //fast way to store values (rather than an ArrayList with remove calls)
 byte _curWriteIndex = 0; // tracks where we are in the circular buffer
 
 // status bar over the graph
-int _graphHeight = SCREEN_HEIGHT - 24;
+int _graphHeight = SCREEN_HEIGHT - 22;  //default 24
 
 ///////// engine parameters /////////
-uint8_t Data[63];
+uint8_t Data[116];  //Data buffer for serial read
 
-int RPM;    //byte 14 (lowByte) and 15 (highByte)
-int MAP;    //byte 4 (lowByte) and 5 (highByte)
-float AFR;  //byte 10
-int IAT;    //byte
-int CLT;    //byte 7
-float PSI;  //byte
-int TPS;    //byte 24
+int secl;     //byte 0 counter
+int MAP;      //byte 4 (lowByte) and 5 (highByte)
+int IAT;      //byte 6
+int CLT;      //byte 7
 float BAT;    //byte 9
+float AFR;    //byte 10
+int EGO;      //byte 11
+int RPM;      //byte 14 (lowByte) and 15 (highByte)
 float AFR_T;  //byte 19
+int advance;  //btye 23
+int TPS;      //byte 24
+int MAPdot;   //gyte 92
+int VSS;      //byte 101 (lowByte) and 102 (highByte)
+int gear;     //byte 103
+
+float PSI;    //byte MAP to psi conversion
 
 //////// Buttons /////////
 byte button1 = 1;
@@ -74,25 +82,19 @@ void setup() {
   Serial1.begin(115200);  //  console Serial 
 
 
-  /*if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
-    }*/
-    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-    display.display();
-    delay(2000); // Pause for 2 seconds
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.display();
+  delay(2000); // Pause for 2 seconds
 
-    display.clearDisplay();
-    flag = 0;
+  display.clearDisplay();
+  flag = 0;
 
 }
 
 void loop() {
   
   GetData();
-  buttonState1 = digitalRead(button1);
   Button1();
-  buttonState2 = digitalRead(button2);
   Button2();
   delay(25);
   
@@ -141,122 +143,119 @@ void updateScreen( char message[5], float data, char unit[4], int j = 0, int y =
 
 ////////// Button1 to switch case ///////////////// logic to avoid changing case if press for long without delay
 void Button1(void){
-  if (buttonState1 != lastButtonState1){
-    if(digitalRead(button1) == 0){
+  buttonState1 = digitalRead(button1);
+  if ((buttonState1 != lastButtonState1) && (digitalRead(button1) == 0)){
       
-      if (Case == maxCase){
-        Case = 0;
-      }
-      
-      else if ( Case % 2){
-        Case++;
-      }
-      
-      else{
-        Case = Case + 2;
-      }
+    if ( Case % 2){
+      Case++;
     }
-    lastButtonState1 = buttonState1;
+      
+    else{
+      Case += 2;
+    }
   }
+  lastButtonState1 = buttonState1;
 }
 
 ////////// Button2 to switch case /////////////////
 void Button2(void){
-  if (buttonState2 != lastButtonState2){
-    
-    if(digitalRead(button2) == 0){
-      
-      if ((Case == 0)|(Case == 4)|(Case == 6)){
-        Case++;
-      }
-      
-      else if ((Case == 1)|(Case == 5)|(Case == 7)){
-        Case--;
-      }
+  buttonState2 = digitalRead(button2);
+  if ((buttonState2 != lastButtonState2) && (digitalRead(button2) == 0)){
+
+    if ((Case % 2)){
+      Case--;
     }
-    lastButtonState2 = buttonState2;
+
+    else{
+      Case++;
+    }
   }
+  lastButtonState2 = buttonState2;
 }
 
 ///////// Display Cases /////////////
-
 void displayCase(byte X){
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setFont(&FreeSansBold9pt7b);
+  convertData();
+
+  if (Case > maxCase) {
+        Case = 0;
+      }
   
   switch (X){
     
     case 0:
-    MAP = (int)(((Data[5]) & 0xFF) << 8 | (Data[4]) & 0xFF); //combine the high and low byte
-    PSI = ((float)MAP*0.145) - 14.5; //convert Kpa to psi
+    updateScreen("  AFR", AFR, "", 100, 1);
+    break;
+
+    case 1:
+    graph(AFR, 10, 20, "/", 1);
+    
+    display.setTextSize(1);  //display the AFR target after the AFR reading
+    display.setCursor(75, 16);
+    display.print(AFR_T, 1);
+  
+    drawMark(10, 20, 11);
+    drawMark(10, 20, 15);
+    //drawMark(10, 20, 20);
+    break;
+
+    case 2:
+
     if (PSI < 0){
       PSI = -PSI * 2.036; // convert psi to inche of mercury
       updateScreen(" BOOST", PSI, " VAC", 80);
     }
+
     else{
       updateScreen(" BOOST", PSI, " PSI", 80);
     }
     break;
 
-    case 1:
-    MAP = (int)(((Data[5]) & 0xFF) << 8 | (Data[4]) & 0xFF); //combine the high and low byte
-    PSI = ((float)MAP*0.145) - 14.5; //convert Kpa to psi
-    
+    case 3:
     graph(PSI, -15, 15, "psi", 0); // make a live graph from -15 to 15 psi
     drawMark(-15, 15, 0);
     drawMark(-15, 15, 15); // draw a mark line at 15 psi
     
     break;
 
-    case 2:
-    RPM = (int)(((Data[15]) & 0xFF) << 8 | (Data[14]) & 0xFF); //combine the high and low byte
+    case 4:
     updateScreen("  RPM", RPM, "");
     break;
 
-    case 4:
-    AFR = (float)Data[10]/10;
-    updateScreen("  AFR", AFR, "", 100, 1);
-    break;
-
     case 5:
-    AFR = (float)Data[10]/10;
-    AFR_T = (float)Data[19]/10;
-    graph(AFR, 10, 15, "/", 1);
-    
-    display.setTextSize(1);
-    display.setCursor(75, 16);
-    
-    display.print(AFR_T, 1);
-  
-    drawMark(10, 15, 12);
-    drawMark(10, 15, 15);
+    updateScreen("Speed", VSS, "Km/h", 80);
     break;
 
     case 6:
-    IAT = (int)Data[6] - 40;
     updateScreen("  IAT", IAT, "°C", 100);
     break;
 
     case 7:
-    IAT = (int)(Data[6] - 40);
     graph(IAT, 0, 150, "deg", 0);
     drawMark(20, 150, 100);
     break;
 
     case 8:
-    CLT = (int) Data[7] - 40;
     updateScreen("  CLT", CLT, "°C", 100);
     break;
 
+    case 9:
+    Case--;
+    break;
+
     case 10:
-    TPS = Data[24];
     updateScreen("  TPS", TPS, "%", 100);
     break;
 
+    case 11:
+    Case--;
+    break;
+
     case 12:
-    BAT = (float)Data[9]/10;
-    updateScreen("  BAT", BAT, "V", 100, 1);
+    updateScreen("  BAT", BAT, " V", 100, 1);
     break;
 
   }
@@ -311,7 +310,7 @@ void drawLine(int xPos, float sensorVal, int maxSensorVal, int minSensorVal){
   //display.drawFastVLine(xPos, yPos, 4, WHITE);
 }
 
-//////draw a line across the graph ///////////
+//////draw a mark across the graph ///////////
 void drawMark(int minSensorVal, int maxSensorVal, int mark){
   
   int lineHeight = map(mark, minSensorVal, maxSensorVal, 0, _graphHeight);
@@ -357,4 +356,43 @@ void drawMark(int minSensorVal, int maxSensorVal, int mark){
     xStart += increment;
     xEnd += increment;
   }
+}
+
+
+////////convert recived Data to readable data ////////////
+void convertData(){
+  /*
+  secl    byte 0 counter
+  MAP     byte 4 (lowByte) and 5 (highByte)
+  IAT;    byte 6
+  CLT     byte 7
+  BAT     byte 9
+  AFR     byte 10
+  EGO     byte 11
+  RPM     byte 14 (lowByte) and 15 (highByte)
+  fAFR_T  byte 19
+  advance byte 23
+  TPS     byte 24
+  MAPdot  byte 92
+  VSS     byte 101 (lowByte) and 102 (highByte)
+  gear    byte 103
+  */
+
+  secl = Data[0];
+  MAP = (int)((Data[5] << 8) | Data[4]); //combine the high and low byte
+  IAT = (int)(Data[6] - 40);
+  CLT = (int)(Data[7] - 40);
+  BAT = (float)Data[9]/10;
+  AFR = (float)Data[10]/10;
+  EGO = Data[11];
+  RPM = (int)((Data[15] << 8) | Data[14]); //combine the high and low byte
+  AFR_T = (float)Data[19]/10;
+  advance = Data[23];
+  TPS = Data[24];
+  MAPdot = Data[92];
+  VSS = (int)((Data[101] << 8) | Data[102]); //combine the high and low byte
+  gear = Data[103];
+
+  PSI = ((float)MAP*0.145) - 14.5; //convert Kpa to psi
+
 }
