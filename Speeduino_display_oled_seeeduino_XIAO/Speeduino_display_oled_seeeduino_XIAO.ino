@@ -8,6 +8,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <SD.h>
 
 #include <Fonts/FreeSansBold9pt7b.h>
 
@@ -30,6 +31,7 @@ void drawMark();
 void convertData();
 void FourDataPage();
 bool Alarm();
+void SDlog();
 
 //////graph buffer/////////
 float _circularBuffer[128]; // fast way to store values (rather than an ArrayList with remove calls)
@@ -41,6 +43,7 @@ int _graphHeight = SCREEN_HEIGHT - 22; // 22 is the number of pixels over the gr
 ///////// engine parameters /////////
 uint8_t Data[117]; //Data buffer for serial read
 
+float Time;
 uint8_t secl;              //byte 0 counter
 uint8_t status1;           //byte 1
 uint8_t engine;            //byte 2
@@ -130,10 +133,21 @@ bool flag;
 /////// case //////////
 byte Case = 0;
 byte lastCase = 0;
-byte maxCase = 7;
+byte maxCase = 9;
 String alarmType;
 
+//// timed loop //////
 uint lastTime;
+
+// SD logger//
+File myFile;
+const byte chipSelect = 3;
+String dataString = "";
+bool logFlag = 0; 
+bool noSDcard = 0;
+
+const char header1[] PROGMEM  = {"Time\tSecL\tMAP\tIAT\tCLT\tBAT\tAFR\tEGO\tRPM\tAFR_T\tadvanve\tTPS\tbaro\ttpsADC"};
+const char header2[] PROGMEM  = {"sec\tsec\tkpa\tC\tC\tV\tAFR\t%\tRPM\tAFR\tdeg\t%\tkpa\tbit"};
 
 void setup()
 {
@@ -150,6 +164,9 @@ void setup()
 
   display.clearDisplay();
   flag = 0;
+
+  noSDcard = !SD.begin(chipSelect);
+  
 }
 
 void loop()
@@ -161,6 +178,12 @@ void loop()
     Button1();
     Button2();
     Alarm();
+
+    if (logFlag)
+    {
+      Time = (float)(millis() / 1000.0) ;
+      SDlog();
+    }
     //delay(25);
 
     if (flag == 1)
@@ -361,10 +384,56 @@ void displayCase(byte page)
   case 8:
     display.setTextSize(1);
     display.setCursor(10, 32);
-    display.print(" Reset ECU?");
+
+    if (noSDcard)
+    {
+      display.print(" No SD card!");
+    }
+
+    else
+    {
+      if (logFlag)
+      {
+        display.print(" Stop Log?");
+      }
+
+      else
+      {
+        display.print(" Start Log?");
+      }
+    }
     break;
 
   case 9:
+    noSDcard = !SD.begin(chipSelect);
+
+    if (logFlag && !noSDcard)
+    {
+      logFlag = 0;
+    }
+
+    else if (!noSDcard)
+    {
+      logFlag = 1;
+      myFile = SD.open("logTest.msl", FILE_WRITE);
+      if (myFile)
+      {
+        myFile.println(header1);
+        myFile.println(header2);
+        myFile.close();
+      }
+    }
+
+    Case = 8;
+    break;
+
+  case 10:
+    display.setTextSize(1);
+    display.setCursor(10, 32);
+    display.print(" Reset ECU?");
+    break;
+
+  case 11:
     display.setTextSize(1);
     display.setCursor(10, 32);
     display.print(" Resetting...");
@@ -373,14 +442,6 @@ void displayCase(byte page)
     Serial1.write("U");
     delay(2000);
     Case = 0;
-    break;
-
-  case 10:
-
-    break;
-
-  case 11:
-    Case--;
     break;
 
   case 12:
@@ -401,7 +462,7 @@ void displayCase(byte page)
 
   case 100:
     display.setTextSize(1);
-    display.setCursor(10, 36);
+    display.setCursor(10, 40);
     display.print(alarmType);
     display.display();
     delay(500);
@@ -672,8 +733,56 @@ bool Alarm()
     alarmType = "Intake HOT";
   }
 
+  else if ((MAP > 70) && (AFR > 14))
+  {
+    alarm = 1;
+    alarmType = "  LEAN...";
+  }
+
   else
     alarm = 0;
 
   return alarm;
+}
+
+void SDlog()
+{
+
+  dataString += Time;
+  dataString += "\t";
+  dataString += secl;
+  dataString += "\t";
+  dataString += MAP;
+  dataString += "\t";
+  dataString += IAT;
+  dataString += "\t";
+  dataString += CLT;
+  dataString += "\t";
+  dataString += BAT;
+  dataString += "\t";
+  dataString += AFR;
+  dataString += "\t";
+  dataString += EGO;
+  dataString += "\t";
+  dataString += RPM;
+  dataString += "\t";
+  dataString += AFR_T;
+  dataString += "\t";
+  dataString += advance;
+  dataString += "\t";
+  dataString += TPS;
+  dataString += "\t";
+  dataString += baro;
+  dataString += "\t";
+  dataString += tpsADC;
+  
+
+  myFile = SD.open("logTest.msl", FILE_WRITE);
+  if (myFile)
+  {
+    myFile.println(dataString);
+    myFile.close();
+  }
+
+  dataString = "";
 }
