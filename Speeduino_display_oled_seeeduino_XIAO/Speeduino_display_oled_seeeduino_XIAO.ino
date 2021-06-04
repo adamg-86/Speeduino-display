@@ -93,28 +93,28 @@ uint16_t ingLoad;             //byte 87 (lowByte) and 88 (highByte)
 float dwell;                  //byte 89 (lowByte) and 90 (highByte)
 uint8_t CLIdleTarget;         //byte 91
 uint8_t mapDOT;               //byte 92
-uint8_t vvt1Angle;            //byte 93
-uint8_t vvt1TargetAngle;      //byte 94
-uint8_t vvt1Duty;             //byte 95
-uint16_t flexBoostCorrection; //byte 96 (lowByte) and 97 (highByte)
-uint8_t baroCorrection;       //byte 98
-uint8_t VE;                   //byte 99
-uint8_t ASEValue;             //byte 100
-uint16_t VSS;                 //byte 101 (lowByte) and 102 (highByte)
-uint8_t gear;                 //byte 103
-uint8_t fuelPressure;         //byte 104
-uint8_t oilPressure;          //byte 105
-uint8_t wmiPW;                //byte 106
-uint8_t wmiEmpty;             //byte 107
-uint8_t vvt2Angle;            //byte 108
-uint8_t vvt2TargetAngle;      //byte 109
-uint8_t vvt2Duty;             //byte 110
-uint8_t outputsStatus;        //byte 111 evry bit is an output
-uint8_t fuelTemp;             //byte 112
-uint8_t fuelTempCorrection;   //byte 113
-uint8_t advance1;             //byte 114 ing advance in table 1
-uint8_t advance2;             //byte 115 ing advance in table 2
-uint8_t TS_SD_Status;         //byte 116
+uint16_t vvt1Angle;           //byte 93 (lowByte) and 94 (highByte)
+uint8_t vvt1TargetAngle;      //byte 95
+uint8_t vvt1Duty;             //byte 96
+uint16_t flexBoostCorrection; //byte 97 (lowByte) and 98 (highByte)
+uint8_t baroCorrection;       //byte 99
+uint8_t VE;                   //byte 100
+uint8_t ASEValue;             //byte 101
+uint16_t VSS;                 //byte 102 (lowByte) and 103 (highByte)
+uint8_t gear;                 //byte 104
+uint8_t fuelPressure;         //byte 105
+uint8_t oilPressure;          //byte 106
+uint8_t wmiPW;                //byte 107
+uint8_t status4;              //byte 108
+uint8_t vvt2Angle;            //byte 109 (lowByte) and 110 (highByte)
+uint8_t vvt2TargetAngle;      //byte 111
+uint8_t vvt2Duty;             //byte 112
+uint8_t outputsStatus;        //byte 113
+uint8_t fuelTemp;             //byte 114
+uint8_t fuelTempCorrection;   //byte 115
+uint8_t advance2;             //byte 117
+uint8_t advance1;             //byte 116
+uint8_t TS_SD_Status;         //byte 118
 
 float PSI; //bar to psi conversion
 
@@ -128,16 +128,16 @@ bool lastButtonState1 = 1;
 bool buttonState2 = 1;
 bool lastButtonState2 = 1;
 
-bool flag;
+bool flag = 0;
 
 /////// case //////////
 byte Case = 0;
 byte lastCase = 0;
-byte maxCase = 9;
+byte maxCase = 11;
 String alarmType;
 
 //// timed loop //////
-uint lastTime;
+uint long lastTime;
 
 // SD logger//
 File myFile;
@@ -163,7 +163,6 @@ void setup()
   delay(2000); // Pause for 2 seconds
 
   display.clearDisplay();
-  flag = 0;
 
   noSDcard = !SD.begin(chipSelect);
   
@@ -171,9 +170,9 @@ void setup()
 
 void loop()
 {
-  if (millis() >= lastTime) //25Hz loop
-  {
-    GetData(0, 0x30, 0, 117);
+  //if (millis() >= lastTime) //25Hz loop
+  //{
+    GetData("r", 0, 0x30, 0, 118);
     convertData();
     Button1();
     Button2();
@@ -184,46 +183,66 @@ void loop()
       Time = (float)(millis() / 1000.0) ;
       SDlog();
     }
-    //delay(25);
+    delay(40);
 
     if (flag == 1)
       displayCase(Case); // if first serial byte is ok display
 
     //else  //loop back to get new data from serial
     //  ;
-    lastTime = millis() + 40; // change this number to change loop time no lower than 25   1000/number = frequency in hz
-  }
+  //  lastTime = millis() + 40; // change this number to change loop time no lower than 25   1000/number = frequency in hz
+ // }
 }
 
 //******** get serial data *************//
-void GetData(uint8_t canID, uint8_t cmd, uint16_t offset, uint16_t length)
+void GetData(char request[1], uint8_t canID, uint8_t cmd, uint16_t offset, uint16_t length)
 {
   byte firstByte = 0;
   byte cmdr = 0;  //cmd recived
   uint cmdLength; //number of byte to recive
 
-  Serial1.write("r");
-  Serial1.write(canID);            //canID
-  Serial1.write(cmd);              // cmd
-  Serial1.write(lowByte(offset));  //offset low byte
-  Serial1.write(highByte(offset)); //offset high byte
-  Serial1.write(lowByte(length));  //length low byte
-  Serial1.write(highByte(length)); //length high byte
+
+  if (request == "r")
+  {
+    Serial1.write("r");
+    Serial1.write(canID);            //canID
+    Serial1.write(cmd);              // cmd
+    Serial1.write(lowByte(offset));  //offset low byte
+    Serial1.write(highByte(offset)); //offset high byte
+    Serial1.write(lowByte(length));  //length low byte
+    Serial1.write(highByte(length)); //length high byte
+    
+  }
+
+  if (request == "A")
+  {
+    Serial1.write("A");
+  }
 
   cmdLength = offset + length;
 
-  if (Serial1.available())
+  if (Serial1.available() >= 2)
   {
     firstByte = Serial1.read();
-    cmdr = Serial1.read(); // will be 0x30
+    if (firstByte == 'r')
+    {
+      cmdr = Serial1.read(); // will be 0x30
+    }  
   }
 
-  if ((firstByte == 'r') && (cmdr == cmd))
-    flag = 1; //to throw out data out of order
+  if ((firstByte == 'A') || ((firstByte == 'r') && (cmdr == cmd))) 
+    flag = 1;
+    
   else
+  {
     flag = 0;
+    while (Serial1.available())
+    {
+      Serial1.read(); //to throw out data if out of order
+    }
+  }
 
-  if (Serial1.available()) //read the serial buffer
+  while (Serial1.available()) //read the serial buffer
   {
     for (offset; offset <= (cmdLength); offset++)
     {
@@ -315,8 +334,8 @@ void displayCase(byte page)
   case 0:
     updateScreen("  AFR", AFR, "", 100, 1);
 
-    /*display.setTextSize(1);
-    display.setCursor(100, 20);
+    display.setTextSize(1);
+    display.setCursor(100, 10);
 
     if (outputsStatus & 0x1)
     {
@@ -325,7 +344,7 @@ void displayCase(byte page)
     else
     {
       display.print("off");
-    }*/
+    }
     break;
 
   case 1:
@@ -373,8 +392,8 @@ void displayCase(byte page)
     break;
 
   case 6:
-    FourDataPage("IAT C", IAT, 0, "CLT C", CLT, 0, "BAT V", BAT, 1, "baro", baro, 0);
-    //FourDataPage("test", Data[75], 0, "test",Data[76], 0, "test", Data[77], 0, "test",Data[78], 0);
+    //FourDataPage("IAT C", IAT, 0, "CLT C", CLT, 0, "BAT V", BAT, 1, "baro", baro, 0);
+    FourDataPage("test", dwell, 3, "test",mapDOT, 0, "test", VE, 0, "test",outputsStatus, 0);
     break;
 
   case 7:
@@ -423,9 +442,9 @@ void displayCase(byte page)
         myFile.close();
       }
     }
-
     Case = 8;
     break;
+
 
   case 10:
     display.setTextSize(1);
@@ -440,25 +459,11 @@ void displayCase(byte page)
     display.display();
     delay(1000);
     Serial1.write("U");
-    delay(2000);
+    Serial1.write(1); //ECU reset at next byte after the "U" command 
+    delay(1000);
     Case = 0;
     break;
 
-  case 12:
-
-    break;
-
-  case 13:
-    Case--;
-    break;
-
-  case 14:
-
-    break;
-
-  case 15:
-    Case--;
-    break;
 
   case 100:
     display.setTextSize(1);
@@ -630,31 +635,31 @@ void convertData()
   uint8_t engineProtecStatus;//byte 84
   uint16_t fuelLoad;         //byte 85 (lowByte) and 86 (highByte)
   uint16_t ingLoad;          //byte 87 (lowByte) and 88 (highByte)
-  float dwell;            //byte 89 (lowByte) and 90 (highByte)
+  float dwell;               //byte 89 (lowByte) and 90 (highByte)
   uint8_t CLIdleTarget;      //byte 91
   uint8_t mapDOT;            //byte 92
-  uint8_t vvt1Angle;         //byte 93
-  uint8_t vvt1TargetAngle;   //byte 94
-  uint8_t vvt1Duty;          //byte 95
-  uint16_t flexBoostCorrection; //byte 96 (lowByte) and 97 (highByte)
-  uint8_t baroCorrection;    //byte 98
-  uint8_t VE;                //byte 99
-  uint8_t ASEValue;          //byte 100
-  uint16_t VSS;              //byte 101 (lowByte) and 102 (highByte)
-  uint8_t gear;              //byte 103
-  uint8_t fuelPressure;      //byte 104
-  uint8_t oilPressure;       //byte 105
-  uint8_t wmiPW;             //byte 106
-  uint8_t wmiEmpty;          //byte 107
-  uint8_t vvt2Angle;         //byte 108
-  uint8_t vvt2TargetAngle;   //byte 109
-  uint8_t vvt2Duty;          //byte 110
-  uint8_t outputsStatus;     //byte 111
-  uint8_t fuelTemp;          //byte 112
-  uint8_t fuelTempCorrection;//byte 113
-  uint8_t advance1;          //byte 114
-  uint8_t advance2;          //byte 115
-  uint8_t TS_SD_Status;      //byte 116
+  uint16_t vvt1Angle;        //byte 93 (lowByte) and 94 (highByte)
+  uint8_t vvt1TargetAngle;   //byte 95
+  uint8_t vvt1Duty;          //byte 96
+  uint16_t flexBoostCorrection; //byte 97 (lowByte) and 98 (highByte)
+  uint8_t baroCorrection;    //byte 99
+  uint8_t VE;                //byte 100
+  uint8_t ASEValue;          //byte 101
+  uint16_t VSS;              //byte 102 (lowByte) and 103 (highByte)
+  uint8_t gear;              //byte 104
+  uint8_t fuelPressure;      //byte 105
+  uint8_t oilPressure;       //byte 106
+  uint8_t wmiPW;             //byte 107
+  uint8_t status4;           //byte 108
+  uint8_t vvt2Angle;         //byte 109 (lowByte) and 110 (highByte)
+  uint8_t vvt2TargetAngle;   //byte 111
+  uint8_t vvt2Duty;          //byte 112
+  uint8_t outputsStatus;     //byte 113
+  uint8_t fuelTemp;          //byte 114
+  uint8_t fuelTempCorrection;//byte 115
+  uint8_t advance1;          //byte 116
+  uint8_t advance2;          //byte 117
+  uint8_t TS_SD_Status;      //byte 118
 
   */
 
@@ -674,10 +679,14 @@ void convertData()
   error = Data[74];
   PW1 = (float)(10 * ((Data[76] << 8) | Data[75])); //combine the high and low byte
   engineProtecStatus = Data[84];
-  dwell = (float)((Data[90] << 8) | Data[90]); //combine the high and low byte
+  dwell = (float)((Data[90] << 8) | Data[90])/1000.0; //combine the high and low byte
   mapDOT = Data[92];
-  VE = Data[99];
+  VE = Data[100];
   ASEValue = Data[101];
+  /*VSS = ((Data[103] << 8) | Data[102]); //combine the high and low byte
+  gear = Data[104];
+  outputsStatus = Data[113];*/
+
   VSS = ((Data[102] << 8) | Data[101]); //combine the high and low byte
   gear = Data[103];
   outputsStatus = Data[111];
@@ -733,11 +742,11 @@ bool Alarm()
     alarmType = "Intake HOT";
   }
 
-  else if ((MAP > 70) && (AFR > 14))
+  /*else if ((MAP > 70) && (AFR > 14))
   {
     alarm = 1;
     alarmType = "  LEAN...";
-  }
+  }*/
 
   else
     alarm = 0;
