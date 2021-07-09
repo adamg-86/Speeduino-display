@@ -37,6 +37,7 @@ void convertData();
 void FourDataPage();
 bool Alarm();
 void SDlog();
+void logging();
 
 //////graph buffer/////////
 float _circularBuffer[128]; // value storage for the graph display
@@ -47,12 +48,12 @@ int _graphHeight = SCREEN_HEIGHT - 22; // 22 is the number of pixels over the gr
 
 ///////// engine parameters /////////
 uint8_t Data[117]; //Data buffer for serial read
-
+//struct status {
 float Time;
 uint8_t secl;              //byte 0 counter
 uint8_t status1;           //byte 1
 uint8_t engine;            //byte 2
-uint8_t dwell1;             //byte 3 divide by 10
+uint8_t dwell;             //byte 3 divide by 10
 uint16_t MAP;              //byte 4 (lowByte) and 5 (highByte)
 int IAT;                   //byte 6
 int CLT;                   //byte 7 
@@ -65,9 +66,9 @@ uint8_t wueCorrection;     //byte 13
 uint16_t RPM;              //byte 14 (lowByte) and 15 (highByte)
 uint8_t AEamount;          //byte 16
 uint16_t corrections;      //byte 17 
-uint8_t VE1;               //byte 18
+uint8_t VE;               //byte 18
 float AFR_T;               //byte 19
-float PWM1;               //byte 20 (lowByte) and 21 (highByte)
+float PW1;               //byte 20 (lowByte) and 21 (highByte)
 uint8_t tpsDOT;            //byte 22
 int8_t advance;            //byte 23  live advance can be an average of table 1 and 2
 uint8_t TPS;               //byte 24
@@ -87,41 +88,48 @@ uint8_t baro;              //byte 40
 //byte 41 to 72 aux input ??
 uint8_t tpsADC;            //byte 73
 uint8_t error;             //byte 74
-float PW1;               //byte 75 (lowByte) and 76 (highByte)  //Pulsewidth 1 multiplied by 10 in ms. Have to convert from uS to mS.
+
+uint8_t statusGroup;        //byte 75
+uint8_t launchCorrection;   //byte 76
+
 float PW2;               //byte 77 (lowByte) and 78 (highByte)  //Pulsewidth 2 multiplied by 10 in ms. Have to convert from uS to mS.
 float PW3;               //byte 79 (lowByte) and 80 (highByte)  //Pulsewidth 3 multiplied by 10 in ms. Have to convert from uS to mS.
 float PW4;               //byte 81 (lowByte) and 82 (highByte)  //Pulsewidth 4 multiplied by 10 in ms. Have to convert from uS to mS.
 uint8_t status3;           //byte 83
-uint8_t engineProtecStatus;//byte 84
+uint8_t engineProtectStatus;//byte 84
 uint16_t fuelLoad;         //byte 85 (lowByte) and 86 (highByte)
 uint16_t ingLoad;          //byte 87 (lowByte) and 88 (highByte)
-float dwell2;              //byte 89 (lowByte) and 90 (highByte) more precise dwell
-uint8_t CLIdleTarget;      //byte 91
-uint8_t mapDOT;            //byte 92
-uint16_t vvt1Angle;        //byte 93 (lowByte) and 94 (highByte)
+uint16_t injAngle;         //byte 89 (lowByte) and 90 (highByte)
+uint8_t idleDuty;          //byte 91
+uint8_t CLIdleTarget;      //byte 92
+uint8_t mapDOT;            //byte 93
+uint8_t vvt1Angle;         //byte 94 
 uint8_t vvt1TargetAngle;   //byte 95
 uint8_t vvt1Duty;          //byte 96
 uint16_t flexBoostCorrection; //byte 97 (lowByte) and 98 (highByte)
 uint8_t baroCorrection;    //byte 99
-uint8_t VE;                //byte 100 live VE can be an average of VE1 and VE2
-uint8_t ASEValue;          //byte 101
-uint16_t VSS;              //byte 102 (lowByte) and 103 (highByte)
-uint8_t gear;              //byte 104
-uint8_t fuelPressure;      //byte 105
-uint8_t oilPressure;       //byte 106
-uint8_t wmiPW;             //byte 107
-uint8_t status4;           //byte 108
-uint8_t vvt2Angle;         //byte 109 (lowByte) and 110 (highByte)
-uint8_t vvt2TargetAngle;   //byte 111
-uint8_t vvt2Duty;          //byte 112
-uint8_t outputsStatus;     //byte 113
-uint8_t fuelTemp;          //byte 114
-uint8_t fuelTempCorrection;//byte 115
+uint8_t ASEValue;          //byte 100
+uint16_t VSS;              //byte 101 (lowByte) and 102 (highByte)
+uint8_t gear;              //byte 103
+uint8_t fuelPressure;      //byte 104
+uint8_t oilPressure;       //byte 105
+uint8_t wmiPW;             //byte 106
+uint8_t status4;           //byte 107
+uint8_t vvt2Angle;         //byte 108 
+uint8_t vvt2TargetAngle;   //byte 109
+uint8_t vvt2Duty;          //byte 110
+uint8_t outputsStatus;     //byte 111
+uint8_t fuelTemp;          //byte 112
+uint8_t fuelTempCorrection;//byte 113
+uint8_t VE1;               //byte 114
+uint8_t VE2;               //byte 115
 uint8_t advance1;          //byte 116
 uint8_t advance2;          //byte 117
-uint8_t TS_SD_Status;      //byte 118
+uint8_t nitrous_status;    //byte 118
+uint8_t TS_SD_Status;      //byte 119
 
 float PSI; //bar to psi conversion
+//};
 
 //////// Buttons /////////
 byte button1 = 1;
@@ -138,7 +146,7 @@ bool flag = 0;
 /////// case //////////
 byte Case = 0;
 byte lastCase = 0;
-byte maxCase = 11;
+byte maxCase = 9;
 String alarmType;
 
 //// timed loop //////
@@ -150,9 +158,40 @@ const byte chipSelect = 3;
 String logBuffer = "";
 bool logFlag = 0; 
 bool noSDcard = 0;
+// Time	SecL	RPM	MAP	TPS	AFR	Lambda	MAT	CLT	Engine	DFCO	EGO cor1	Gair	Gbattery	Gwarm	Gbaro	Gammae	Accel Enrich	Current VE	VE1	VE2	PW	AFR Target	Lambda Target	PW2	Duty_Cycle	DutyCycle2	TPS DOT	Advance	Dwell	Battery V	rpm/s	Error #	Error ID	Boost PSI	Boost cut	Hard Launch	Hard Limiter	Idle Control	IAC value	Idle Target RPM	Idle RPM Delta	Baro Pressure	Sync Loss #	Wheel Speed _kph	Wheel Speed _mph	Gear	WB on	Advance 1	Advance 2	Trip Economy	Instant Economy	Fuel Consumption	Trip Meter Km	Odometer Km	Vehicle Speed	Power	Torque	Odometer_KM
+const char header1[] PROGMEM  = {"\
+Time\t\
+SecL\t\
+MAP\t\
+IAT\t\
+CLT\t\
+BAT\t\
+AFR\t\
+EGO\t\
+RPM\t\
+AFR_T\t\
+advanve\t\
+TPS\t\
+baro\t\
+tpsADC\
+"};
 
-const char header1[] PROGMEM  = {"Time\tSecL\tMAP\tIAT\tCLT\tBAT\tAFR\tEGO\tRPM\tAFR_T\tadvanve\tTPS\tbaro\ttpsADC"};
-const char header2[] PROGMEM  = {"sec\tsec\tkpa\tC\tC\tV\tAFR\t%\tRPM\tAFR\tdeg\t%\tkpa\tbit"};
+const char header2[] PROGMEM  = {"\
+sec\t\
+sec\t\
+kpa\t\
+C\t\
+C\t\
+V\t\
+AFR\t\
+%\t\
+RPM\t\
+AFR\t\
+deg\t\
+%\t\
+kpa\t\
+bit\
+"};
 
 char temp;
 
@@ -177,29 +216,29 @@ void setup()
 
 void loop()
 {
-  //if (millis() >= lastTime) //25Hz loop
-  //{
-    //GetData("r", 0, 0x30, 0, 118);
-    sendComms('n');
+  sendComms('n');
 
-    if (Serial1.available())
-    {
-      reciveComms('n');
-    }
+  if (Serial1.available())
+  {
+    reciveComms('n');
+  }
 
-    convertData();
-    Button1();
-    Button2();
-    Alarm();
+  convertData();
+  Button1();
+  Button2();
+  Alarm();
 
-    if (logFlag)
-    {
-      Time = (float)(millis() / 1000.0) ;
-      SDlog();
-    }
-    
-    displayCase(Case);
-    delay(40);
+  display.clearDisplay();
+
+  if (logFlag)
+  {
+    Time = (float)(millis() / 1000.0) ;
+    SDlog();
+    logging();
+  }
+
+  displayCase(Case);
+  delay(40);
 }
 
 
@@ -331,7 +370,7 @@ void Button2(void)
   if ((buttonState2 != lastButtonState2) && (digitalRead(button2) == 0))
   {
 
-    if ((Case % 2))
+    if (Case % 2)
     {
       Case--;
     }
@@ -347,7 +386,6 @@ void Button2(void)
 ///////// Display Cases /////////////
 void displayCase(byte page)
 {
-  display.clearDisplay();
   display.setTextColor(WHITE);
   display.setFont(&FreeSansBold9pt7b);
 
@@ -367,18 +405,21 @@ void displayCase(byte page)
   {
 
   case 0:
-    updateScreen("  AFR", AFR, "", 100, 1);
 
-    display.setTextSize(1);
-    display.setCursor(100, 15);
-
-    if (outputsStatus & 0x1)// look if the first bit (output 1) is 1 = on
+    if (outputsStatus & 0x1)  // look if the first bit (output 1) is 1 = on
     {
-      display.print("on");
+      updateScreen("  AFR", AFR, "", 100, 1);
     }
-    else
+
+    else  // the O2 is off
     {
-      display.print("off");
+      display.setTextSize(1);
+      display.setCursor(30, 15); 
+      display.println("  AFR");
+
+      display.setTextSize(3);
+      display.setCursor(0, 58);
+      display.print("OFF");
     }
     break;
 
@@ -433,12 +474,10 @@ void displayCase(byte page)
 
   case 6:
     FourDataPage("IAT C", IAT, 0, "CLT C", CLT, 0, "BAT V", BAT, 1, "baro", baro, 0);
-    //FourDataPage("AE", AEamount, 0, "corrections",corrections, 0, "VE1", VE1, 0, "PWM1",PWM1, 3);
     break;
 
   case 7:
     FourDataPage("MAP", MAP, 0, "AFR", AFR, 1, "SPARK", advance, 0, "AFR T", AFR_T, 1);
-    //FourDataPage("tpsDOT", tpsDOT, 0, "advance",advance, 0, "loops", loopsPerSeconds, 0, "spark",spark, 0);
     break;
 
   case 8:
@@ -486,7 +525,6 @@ void displayCase(byte page)
     Case = 8;
     break;
 
-
   case 10:
     display.setTextSize(1);
     display.setCursor(10, 32);
@@ -494,17 +532,28 @@ void displayCase(byte page)
     break;
 
   case 11:
-    display.setTextSize(1);
-    display.setCursor(10, 32);
-    display.print(" Resetting...");
-    display.display();
-    delay(1000);
-    Serial1.write("U");
-    Serial1.write(1); //ECU reset at next byte after the "U" command 
-    delay(1000);
-    Case = 0;
+    if (VSS == 0)
+    {
+      display.setTextSize(1);
+      display.setCursor(10, 32);
+      display.print(" Resetting...");
+      display.display();
+      delay(1000);
+      Serial1.write("U");
+      Serial1.write(1); //ECU reset at next byte after the "U" command
+      delay(1000);
+      Case = 0;
+    }
+    
+    else
+    {
+      display.setTextSize(1);
+      display.setCursor(0, 32);
+      display.print("must be stopped");
+      display.display();
+      delay(1000);
+    }
     break;
-
 
   case 100:
     display.setTextSize(1);
@@ -512,6 +561,7 @@ void displayCase(byte page)
     display.print(alarmType);
     display.display();
     delay(250);
+    
     if (Alarm() != 1)
       Case = lastCase;
     break;
@@ -627,10 +677,11 @@ void drawMark(int minSensorVal, int maxSensorVal, int mark)
 void convertData()
 {
   /*
+  float Time;
   uint8_t secl;              //byte 0 counter
   uint8_t status1;           //byte 1
   uint8_t engine;            //byte 2
-  uint8_t dwell1;            //byte 3 divide by 10
+  uint8_t dwell1;             //byte 3 divide by 10
   uint16_t MAP;              //byte 4 (lowByte) and 5 (highByte)
   int IAT;                   //byte 6
   int CLT;                   //byte 7 
@@ -643,17 +694,17 @@ void convertData()
   uint16_t RPM;              //byte 14 (lowByte) and 15 (highByte)
   uint8_t AEamount;          //byte 16
   uint16_t corrections;      //byte 17 
-  uint8_t VE1;               //byte 18
+  uint8_t VE;                //byte 18
   float AFR_T;               //byte 19
-  uint8_t PWM1;              //byte 20 (lowByte) and 21 (highByte)
+  float PW1;               //byte 20 (lowByte) and 21 (highByte)
   uint8_t tpsDOT;            //byte 22
   int8_t advance;            //byte 23  live advance can be an average of table 1 and 2
   uint8_t TPS;               //byte 24
   uint16_t loopsPerSeconds;  //byte 25 (lowByte) and 26 (highByte)
   uint16_t freeRAM;          //byte 27 (lowByte) and 28 (highByte)
-  uint8_t boostTarget;       //byte 29 divided by 2 to fit in a byte
+  uint16_t boostTarget;      //byte 29 divide by 2 to fit in a byte in kpa
   uint8_t boostDuty;         //byte 30 in %
-  int8_t spark;              //byte 31
+  uint8_t spark;              //byte 31
   uint16_t rpmDOT;           //byte 32 (lowByte) and 33 (highByte)
   uint8_t ethanolPct;        //byte 34
   uint8_t flexCorrection;    //byte 35
@@ -665,46 +716,51 @@ void convertData()
   //byte 41 to 72 aux input ??
   uint8_t tpsADC;            //byte 73
   uint8_t error;             //byte 74
-  uint8_t PW1;               //byte 75 (lowByte) and 76 (highByte)  //Pulsewidth 1 multiplied by 10 in ms. Have to convert from uS to mS.
-  uint8_t PW2;               //byte 77 (lowByte) and 78 (highByte)  //Pulsewidth 2 multiplied by 10 in ms. Have to convert from uS to mS.
-  uint8_t PW3;               //byte 79 (lowByte) and 80 (highByte)  //Pulsewidth 3 multiplied by 10 in ms. Have to convert from uS to mS.
-  uint8_t PW4;               //byte 81 (lowByte) and 82 (highByte)  //Pulsewidth 4 multiplied by 10 in ms. Have to convert from uS to mS.
+
+  uint8_t statusGroup;        //byte 75
+  uint8_t launchCorrection;   //byte 76
+
+  float PW2;               //byte 77 (lowByte) and 78 (highByte)  //Pulsewidth 2 multiplied by 10 in ms. Have to convert from uS to mS.
+  float PW3;               //byte 79 (lowByte) and 80 (highByte)  //Pulsewidth 3 multiplied by 10 in ms. Have to convert from uS to mS.
+  float PW4;               //byte 81 (lowByte) and 82 (highByte)  //Pulsewidth 4 multiplied by 10 in ms. Have to convert from uS to mS.
   uint8_t status3;           //byte 83
-  uint8_t engineProtecStatus;//byte 84
+  uint8_t engineProtectStatus;//byte 84
   uint16_t fuelLoad;         //byte 85 (lowByte) and 86 (highByte)
   uint16_t ingLoad;          //byte 87 (lowByte) and 88 (highByte)
-  float dwell2;              //byte 89 (lowByte) and 90 (highByte) more precise dwell
-  uint8_t CLIdleTarget;      //byte 91
-  uint8_t mapDOT;            //byte 92
-  uint16_t vvt1Angle;        //byte 93 (lowByte) and 94 (highByte)
+  uint16_t injAngle;         //byte 89 (lowByte) and 90 (highByte)
+  uint8_t idleDuty;          //byte 91
+  uint8_t CLIdleTarget;      //byte 92
+  uint8_t mapDOT;            //byte 93
+  uint8_t vvt1Angle;         //byte 94 
   uint8_t vvt1TargetAngle;   //byte 95
   uint8_t vvt1Duty;          //byte 96
   uint16_t flexBoostCorrection; //byte 97 (lowByte) and 98 (highByte)
   uint8_t baroCorrection;    //byte 99
-  uint8_t VE;                //byte 100 live VE can be an average of VE1 and VE2
-  uint8_t ASEValue;          //byte 101
-  uint16_t VSS;              //byte 102 (lowByte) and 103 (highByte)
-  uint8_t gear;              //byte 104
-  uint8_t fuelPressure;      //byte 105
-  uint8_t oilPressure;       //byte 106
-  uint8_t wmiPW;             //byte 107
-  uint8_t status4;           //byte 108
-  uint8_t vvt2Angle;         //byte 109 (lowByte) and 110 (highByte)
-  uint8_t vvt2TargetAngle;   //byte 111
-  uint8_t vvt2Duty;          //byte 112
-  uint8_t outputsStatus;     //byte 113
-  uint8_t fuelTemp;          //byte 114
-  uint8_t fuelTempCorrection;//byte 115
+  uint8_t ASEValue;          //byte 100
+  uint16_t VSS;              //byte 101 (lowByte) and 102 (highByte)
+  uint8_t gear;              //byte 103
+  uint8_t fuelPressure;      //byte 104
+  uint8_t oilPressure;       //byte 105
+  uint8_t wmiPW;             //byte 106
+  uint8_t status4;           //byte 107
+  uint8_t vvt2Angle;         //byte 108 
+  uint8_t vvt2TargetAngle;   //byte 109
+  uint8_t vvt2Duty;          //byte 110
+  uint8_t outputsStatus;     //byte 111
+  uint8_t fuelTemp;          //byte 112
+  uint8_t fuelTempCorrection;//byte 113
+  uint8_t VE1;               //byte 114
+  uint8_t VE2;               //byte 115
   uint8_t advance1;          //byte 116
   uint8_t advance2;          //byte 117
-  uint8_t TS_SD_Status;      //byte 118
-
+  uint8_t nitrous_status;    //byte 118
+  uint8_t TS_SD_Status;      //byte 119
   */
 
   secl = Data[0];
   status1 = Data[1];
   engine = Data[2];
-  dwell1 = (float)(Data[3] / 10.0);
+  dwell = (float)(Data[3] / 10.0);
   MAP = ((Data[5] << 8) | Data[4]); //combine the high and low byte
   IAT = (Data[6] - 40);
   CLT = (Data[7] - 40);
@@ -717,9 +773,9 @@ void convertData()
   RPM = ((Data[15] << 8) | Data[14]); //combine the high and low byte
   AEamount = Data[16];
   corrections = Data[17];
-  VE1 = Data[18];
+  VE = Data[18];
   AFR_T = (float)Data[19] / 10;
-  PWM1 = (float)(((Data[21] << 8) | Data[20]) / 1000.0);
+  PW1 = (float)(((Data[21] << 8) | Data[20]) / 1000.0);
   tpsDOT = Data[22];
   advance = Data[23];
   TPS = Data[24];
@@ -727,7 +783,7 @@ void convertData()
   freeRAM = ((Data[28] << 8) | Data[27]);
   boostTarget = Data[29] << 1; // multiply by 2
   boostDuty = Data[30];
-  spark = Data[31]; /////// rendu ici pour tester
+  spark = Data[31]; /////// rendu ici pour tester//////////////////////////////////////////
   rpmDOT = ((Data[33] << 8) | Data[32]);
   ethanolPct = Data[34];
   flexCorrection = Data[35];
@@ -738,15 +794,11 @@ void convertData()
   baro = Data[40];
   tpsADC = Data[73];
   error = Data[74];
-  PW1 = (float)(10 * ((Data[76] << 8) | Data[75])); //combine the high and low byte
-  engineProtecStatus = Data[84];
-  dwell2 = (float)((Data[90] << 8) | Data[90])/1000.0; //combine the high and low byte
+  
+  engineProtectStatus = Data[84];
+
   mapDOT = Data[92];
-  VE = Data[100];
   ASEValue = Data[101];
-  /*VSS = ((Data[103] << 8) | Data[102]); //combine the high and low byte
-  gear = Data[104];
-  outputsStatus = Data[113];*/
 
   VSS = ((Data[102] << 8) | Data[101]); //combine the high and low byte
   gear = Data[103];
@@ -857,6 +909,23 @@ void SDlog()
   logBuffer = "";
 }
 
+////// FLASHING DOT IN THE CORNER WHEN LOGGING ////////////
+void logging()
+{
+  display.setFont(&FreeSansBold9pt7b);
 
+  if (secl % 2)
+  {
+    display.setTextColor(WHITE);
+  }
 
+  else
+  {
+    display.setTextColor(BLACK);
+  }
+
+  display.setTextSize(3);
+  display.setCursor(0, 5); 
+  display.println(".");
+}
 
