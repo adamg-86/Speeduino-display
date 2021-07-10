@@ -23,14 +23,7 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 ///////// functions //////////
-//void GetData();
-
-//void sendComms(byte command, uint8_t canID = 0, uint8_t cmd = 0x30, uint16_t offset = 0, uint16_t length = 118);
-//void reciveComms(byte command, byte offset = 0, byte length = 0);
-
 void updateScreen();
-//void Button1();
-//void Button2();
 bool Button();
 
 void displayCase();
@@ -274,90 +267,6 @@ void loop()
   delay(40);
 }
 
-/*
-void sendComms(byte command, uint8_t canID , uint8_t cmd, uint16_t offset, uint16_t length)  //void sendComms(byte command, uint8_t canID = 0, uint8_t cmd = 0x30, uint16_t offset = 0, uint16_t length = 118)
-{
-  switch (command)
-  {
-  case 'A':
-    Serial1.write('A');
-    break;
-
-  case 'n':
-    Serial1.write('n');
-    break;
-
-  case 'r':
-    Serial1.write('r');
-    Serial1.write(canID);            //canID
-    Serial1.write(cmd);              //cmd
-    Serial1.write(lowByte(offset));  //offset low byte
-    Serial1.write(highByte(offset)); //offset high byte
-    Serial1.write(lowByte(length));  //length low byte
-    Serial1.write(highByte(length)); //length high byte
-    break;
-
-    case 'G': // to send aux input data
-
-    break;
-  }
-}
-
-void reciveComms(byte command, byte offset, byte length)  //void reciveComms(byte command, byte length = 0, byte offset = 0)
-{
-  byte cmdr = 0;
-  
-  if (Serial1.available())
-  {
-    command = Serial1.read();
-  }
-
-  switch (command)
-  {
-    case 'A':
-        GetData(0, 75);
-    break;
-
-    case 'n':
-      if (Serial1.available() >= 2)
-        {
-          cmdr = Serial1.read();
-          length = Serial1.read();
-        }
-      GetData(0, length);
-    break;
-
-    case 'r':
-      if (Serial1.available())
-        {
-          cmdr = Serial1.read();
-        }
-      GetData(0, length);
-    break;
-
-    case 'R': //CANcoms for aux inputs 
-
-    break;
-  }
-}
-
-///////////// get serial data //////////////
-void GetData(uint8_t offset, uint8_t length)
-{
-
-  uint liveOffset; //number of byte to recive
-
-  liveOffset = offset + length;
-
-  while (Serial1.available()) //read the serial buffer
-  {
-    for (offset; offset <= (liveOffset); offset++)
-    {
-      Data[offset] = Serial1.read();
-    }
-  }
-}*/
-
 /////////// LCD refresh //////////////////
 void updateScreen(char message[5], float data, char unit[4], int j = 0, int y = 0)
 { // data name, data, unit, number after the dot 0.1111, j cursor defautl 10
@@ -376,8 +285,7 @@ void updateScreen(char message[5], float data, char unit[4], int j = 0, int y = 
   display.print(unit);
 }
 
-//////////Button press function ///////////////// logic to avoid changing case if press for long without delay 
-
+//////////Button short press function ///////////////// logic to avoid changing case if press for long without delay 
 bool Button (button &Button)
 {
   Button.state = digitalRead(Button.pin);
@@ -391,7 +299,6 @@ bool Button (button &Button)
 
   return flag;
 }
-
 
 ///////// Display Cases /////////////
 void displayCase(byte page)
@@ -442,7 +349,6 @@ void displayCase(byte page)
 
     drawMark(10, 20, 11);
     drawMark(10, 20, 15);
-    //drawMark(10, 20, 20);
     break;
 
   case 2:
@@ -770,7 +676,7 @@ void convertData()
   status.secl = Data[0];
   status.status1 = Data[1];
   status.engine = Data[2];
-  status.dwell = (float)(Data[3] / 10.0);
+  status.dwell = (float)(Data[3] / 10);
   status.MAP = ((Data[5] << 8) | Data[4]); //combine the high and low byte
   status.IAT = (Data[6] - 40);
   status.CLT = (Data[7] - 40);
