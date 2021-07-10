@@ -27,8 +27,10 @@ void sendComms(byte command, uint8_t canID = 0, uint8_t cmd = 0x30, uint16_t off
 void reciveComms(byte command, byte offset = 0, byte length = 0);
 
 void updateScreen();
-void Button1();
-void Button2();
+//void Button1();
+//void Button2();
+bool Button();
+
 void displayCase();
 void graph();
 void drawLine();
@@ -48,7 +50,7 @@ int _graphHeight = SCREEN_HEIGHT - 22; // 22 is the number of pixels over the gr
 
 ///////// engine parameters /////////
 uint8_t Data[117]; //Data buffer for serial read
-//struct status {
+struct status {
 float Time;
 uint8_t secl;              //byte 0 counter
 uint8_t status1;           //byte 1
@@ -129,17 +131,19 @@ uint8_t nitrous_status;    //byte 118
 uint8_t TS_SD_Status;      //byte 119
 
 float PSI; //bar to psi conversion
-//};
+};
+
+struct status status;
 
 //////// Buttons /////////
-byte button1 = 1;
-byte button2 = 2;
+struct button {
+  uint8_t pin;
+  bool state;
+  bool lastState;
+};
 
-bool buttonState1 = 1;
-bool lastButtonState1 = 1;
-
-bool buttonState2 = 1;
-bool lastButtonState2 = 1;
+struct button button1;
+struct button button2;
 
 bool flag = 0;
 
@@ -197,9 +201,11 @@ char temp;
 
 void setup()
 {
+  button1.pin = 1;
+  button2.pin = 2;
 
-  pinMode(button1, INPUT_PULLUP);
-  pinMode(button2, INPUT_PULLUP);
+  pinMode(button1.pin, INPUT_PULLUP);
+  pinMode(button2.pin, INPUT_PULLUP);
 
   Serial1.begin(115200);
   // Serial.begin(115200); //  console Serial
@@ -224,15 +230,39 @@ void loop()
   }
 
   convertData();
-  Button1();
-  Button2();
+  if (Button(button1))
+  {
+    if (Case % 2)
+    {
+      Case++;
+    }
+
+    else
+    {
+      Case += 2;
+    }
+  }
+
+  if (Button(button2))
+  {
+    if (Case % 2)
+    {
+      Case--;
+    }
+
+    else
+    {
+      Case++;
+    }
+  }
+
   Alarm();
 
   display.clearDisplay();
 
   if (logFlag)
   {
-    Time = (float)(millis() / 1000.0) ;
+    status.Time = (float)(millis() / 1000.0) ;
     SDlog();
     logging();
   }
@@ -343,45 +373,22 @@ void updateScreen(char message[5], float data, char unit[4], int j = 0, int y = 
   display.print(unit);
 }
 
-////////// Button1 to switch case ///////////////// logic to avoid changing case if press for long without delay
-void Button1(void)
+//////////Button press function ///////////////// logic to avoid changing case if press for long without delay 
+
+bool Button (button &Button)
 {
-  buttonState1 = digitalRead(button1);
-  if ((buttonState1 != lastButtonState1) && (digitalRead(button1) == 0))
+  Button.state = digitalRead(Button.pin);
+  bool flag = 0;
+
+  if ((Button.state != Button.lastState) && (digitalRead(Button.pin) == 0))
   {
-
-    if (Case % 2)
-    {
-      Case++;
-    }
-
-    else
-    {
-      Case += 2;
-    }
+    flag = 1;
   }
-  lastButtonState1 = buttonState1;
+  Button.lastState = Button.state;
+
+  return flag;
 }
 
-////////// Button2 to switch case /////////////////
-void Button2(void)
-{
-  buttonState2 = digitalRead(button2);
-  if ((buttonState2 != lastButtonState2) && (digitalRead(button2) == 0))
-  {
-
-    if (Case % 2)
-    {
-      Case--;
-    }
-
-    else
-    {
-      Case++;
-    }
-  }
-  lastButtonState2 = buttonState2;
-}
 
 ///////// Display Cases /////////////
 void displayCase(byte page)
@@ -406,9 +413,9 @@ void displayCase(byte page)
 
   case 0:
 
-    if (outputsStatus & 0x1)  // look if the first bit (output 1) is 1 = on
+    if (status.outputsStatus & 0x1)  // look if the first bit (output 1) is 1 = on
     {
-      updateScreen("  AFR", AFR, "", 100, 1);
+      updateScreen("  AFR", status.AFR, "", 100, 1);
     }
 
     else  // the O2 is off
@@ -424,11 +431,11 @@ void displayCase(byte page)
     break;
 
   case 1:
-    graph(AFR, 10, 20, "/", 1);
+    graph(status.AFR, 10, 20, "/", 1);
 
     display.setTextSize(1); //display the AFR target after the AFR reading
     display.setCursor(75, 16);
-    display.print(AFR_T, 1);
+    display.print(status.AFR_T, 1);
 
     drawMark(10, 20, 11);
     drawMark(10, 20, 15);
@@ -437,27 +444,27 @@ void displayCase(byte page)
 
   case 2:
 
-    if (PSI < 0)
+    if (status.PSI < 0)
     {
-      PSI = -PSI * 2.036; // convert psi to inche of mercury
-      updateScreen(" BOOST", PSI, " VAC", 80);
+      status.PSI = - status.PSI * 2.036; // convert psi to inche of mercury
+      updateScreen(" BOOST", status.PSI, " VAC", 80);
     }
 
     else
     {
-      updateScreen(" BOOST", PSI, " PSI", 80);
+      updateScreen(" BOOST", status.PSI, " PSI", 80);
     }
     break;
 
   case 3:
-    graph(PSI, -15, 15, "psi", 0); // make a live graph from -15 to 15 psi
+    graph(status.PSI, -15, 15, "psi", 0); // make a live graph from -15 to 15 psi
     drawMark(-15, 15, 0);
     drawMark(-15, 15, 15); // draw a mark line at 15 psi
 
     break;
 
   case 4:
-    updateScreen("Speed", VSS, "h", 110);
+    updateScreen("Speed", status.VSS, "h", 110);
 
     display.setTextSize(1);
     display.setCursor(100, 40);
@@ -465,19 +472,19 @@ void displayCase(byte page)
     display.drawLine(100, 43, 124, 43, WHITE);
 
     display.setCursor(110, 20);
-    display.print(gear); // gear indicator in the corner
+    display.print(status.gear); // gear indicator in the corner
     break;
 
   case 5:
-    updateScreen("  RPM", RPM, "");
+    updateScreen("  RPM", status.RPM, "");
     break;
 
   case 6:
-    FourDataPage("IAT C", IAT, 0, "CLT C", CLT, 0, "BAT V", BAT, 1, "baro", baro, 0);
+    FourDataPage("IAT C", status.IAT, 0, "CLT C", status.CLT, 0, "BAT V", status.BAT, 1, "baro", status.baro, 0);
     break;
 
   case 7:
-    FourDataPage("MAP", MAP, 0, "AFR", AFR, 1, "SPARK", advance, 0, "AFR T", AFR_T, 1);
+    FourDataPage("MAP", status.MAP, 0, "AFR", status.AFR, 1, "SPARK", status.advance, 0, "AFR T", status.AFR_T, 1);
     break;
 
   case 8:
@@ -532,7 +539,7 @@ void displayCase(byte page)
     break;
 
   case 11:
-    if (VSS == 0)
+    if (status.VSS == 0)
     {
       display.setTextSize(1);
       display.setCursor(10, 32);
@@ -757,54 +764,54 @@ void convertData()
   uint8_t TS_SD_Status;      //byte 119
   */
 
-  secl = Data[0];
-  status1 = Data[1];
-  engine = Data[2];
-  dwell = (float)(Data[3] / 10.0);
-  MAP = ((Data[5] << 8) | Data[4]); //combine the high and low byte
-  IAT = (Data[6] - 40);
-  CLT = (Data[7] - 40);
-  batCorrection = Data[8];
-  BAT = (float)Data[9] / 10;
-  AFR = (float)Data[10] / 10;
-  EGO = Data[11];
-  iatCorrection = Data[12];
-  wueCorrection = Data[13];
-  RPM = ((Data[15] << 8) | Data[14]); //combine the high and low byte
-  AEamount = Data[16];
-  corrections = Data[17];
-  VE = Data[18];
-  AFR_T = (float)Data[19] / 10;
-  PW1 = (float)(((Data[21] << 8) | Data[20]) / 1000.0);
-  tpsDOT = Data[22];
-  advance = Data[23];
-  TPS = Data[24];
-  loopsPerSeconds = ((Data[26] << 8) | Data[25]);
-  freeRAM = ((Data[28] << 8) | Data[27]);
-  boostTarget = Data[29] << 1; // multiply by 2
-  boostDuty = Data[30];
-  spark = Data[31]; /////// rendu ici pour tester//////////////////////////////////////////
-  rpmDOT = ((Data[33] << 8) | Data[32]);
-  ethanolPct = Data[34];
-  flexCorrection = Data[35];
-  flexIngCorrection = Data[36];
-  idleLoad = Data[37];
-  testOutputs = Data[38];
-  O2_2 = Data[39];
-  baro = Data[40];
-  tpsADC = Data[73];
-  error = Data[74];
+  status.secl = Data[0];
+  status.status1 = Data[1];
+  status.engine = Data[2];
+  status.dwell = (float)(Data[3] / 10.0);
+  status.MAP = ((Data[5] << 8) | Data[4]); //combine the high and low byte
+  status.IAT = (Data[6] - 40);
+  status.CLT = (Data[7] - 40);
+  status.batCorrection = Data[8];
+  status.BAT = (float)Data[9] / 10;
+  status.AFR = (float)Data[10] / 10;
+  status.EGO = Data[11];
+  status.iatCorrection = Data[12];
+  status.wueCorrection = Data[13];
+  status.RPM = ((Data[15] << 8) | Data[14]); //combine the high and low byte
+  status.AEamount = Data[16];
+  status.corrections = Data[17];
+  status.VE = Data[18];
+  status.AFR_T = (float)Data[19] / 10;
+  status.PW1 = (float)(((Data[21] << 8) | Data[20]) / 1000.0);
+  status.tpsDOT = Data[22];
+  status.advance = Data[23];
+  status.TPS = Data[24];
+  status.loopsPerSeconds = ((Data[26] << 8) | Data[25]);
+  status.freeRAM = ((Data[28] << 8) | Data[27]);
+  status.boostTarget = Data[29] << 1; // multiply by 2
+  status.boostDuty = Data[30];
+  status.spark = Data[31]; /////// rendu ici pour tester//////////////////////////////////////////
+  status.rpmDOT = ((Data[33] << 8) | Data[32]);
+  status.ethanolPct = Data[34];
+  status.flexCorrection = Data[35];
+  status.flexIngCorrection = Data[36];
+  status.idleLoad = Data[37];
+  status.testOutputs = Data[38];
+  status.O2_2 = Data[39];
+  status.baro = Data[40];
+  status.tpsADC = Data[73];
+  status.error = Data[74];
   
-  engineProtectStatus = Data[84];
+  status.engineProtectStatus = Data[84];
 
-  mapDOT = Data[92];
-  ASEValue = Data[101];
+  status.mapDOT = Data[92];
+  status.ASEValue = Data[101];
 
-  VSS = ((Data[102] << 8) | Data[101]); //combine the high and low byte
-  gear = Data[103];
-  outputsStatus = Data[111];
+  status.VSS = ((Data[102] << 8) | Data[101]); //combine the high and low byte
+  status.gear = Data[103];
+  status.outputsStatus = Data[111];
 
-  PSI = ((float)MAP * 0.145) - 14.5; //convert Kpa to psi
+  status.PSI = ((float)status.MAP * 0.145) - 14.5; //convert Kpa to psi
 }
 
 ////////4 Data display enter the name to display, the data, 0 for int 1 for float////////////
@@ -843,19 +850,19 @@ bool Alarm()
   //char alarmType[20];
   bool alarm;
 
-  if (CLT > 110)
+  if (status.CLT > 110)
   {
     alarm = 1;
     alarmType = "Engine HOT";
   }
 
-  else if (IAT > 80)
+  else if (status.IAT > 80)
   {
     alarm = 1;
     alarmType = "Intake HOT";
   }
 
-  else if ((TPS > 80) && (AFR > 14))
+  else if ((status.TPS > 80) && (status.AFR > 14))
   {
     alarm = 1;
     alarmType = "  LEAN...";
@@ -870,33 +877,33 @@ bool Alarm()
 void SDlog()
 {
 
-  logBuffer += Time;
+  logBuffer += status.Time;
   logBuffer += "\t";
-  logBuffer += secl;
+  logBuffer += status.secl;
   logBuffer += "\t";
-  logBuffer += MAP;
+  logBuffer += status.MAP;
   logBuffer += "\t";
-  logBuffer += IAT;
+  logBuffer += status.IAT;
   logBuffer += "\t";
-  logBuffer += CLT;
+  logBuffer += status.CLT;
   logBuffer += "\t";
-  logBuffer += BAT;
+  logBuffer += status.BAT;
   logBuffer += "\t";
-  logBuffer += AFR;
+  logBuffer += status.AFR;
   logBuffer += "\t";
-  logBuffer += EGO;
+  logBuffer += status.EGO;
   logBuffer += "\t";
-  logBuffer += RPM;
+  logBuffer += status.RPM;
   logBuffer += "\t";
-  logBuffer += AFR_T;
+  logBuffer += status.AFR_T;
   logBuffer += "\t";
-  logBuffer += advance;
+  logBuffer += status.advance;
   logBuffer += "\t";
-  logBuffer += TPS;
+  logBuffer += status.TPS;
   logBuffer += "\t";
-  logBuffer += baro;
+  logBuffer += status.baro;
   logBuffer += "\t";
-  logBuffer += tpsADC;
+  logBuffer += status.tpsADC;
   
 
   myFile = SD.open("logTest.msl", FILE_WRITE);
@@ -914,7 +921,7 @@ void logging()
 {
   display.setFont(&FreeSansBold9pt7b);
 
-  if (secl % 2)
+  if (status.secl % 2)
   {
     display.setTextColor(WHITE);
   }
