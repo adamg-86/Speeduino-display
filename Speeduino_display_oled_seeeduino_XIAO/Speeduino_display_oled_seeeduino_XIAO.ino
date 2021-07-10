@@ -12,6 +12,8 @@
 
 #include <Fonts/FreeSansBold9pt7b.h>
 
+#include "comms.h"
+
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
@@ -21,10 +23,10 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 ///////// functions //////////
-void GetData();
+//void GetData();
 
-void sendComms(byte command, uint8_t canID = 0, uint8_t cmd = 0x30, uint16_t offset = 0, uint16_t length = 118);
-void reciveComms(byte command, byte offset = 0, byte length = 0);
+//void sendComms(byte command, uint8_t canID = 0, uint8_t cmd = 0x30, uint16_t offset = 0, uint16_t length = 118);
+//void reciveComms(byte command, byte offset = 0, byte length = 0);
 
 void updateScreen();
 //void Button1();
@@ -49,7 +51,8 @@ byte _curWriteIndex = 0;    // tracks where we are in the circular buffer
 int _graphHeight = SCREEN_HEIGHT - 22; // 22 is the number of pixels over the graph to display numbers or names
 
 ///////// engine parameters /////////
-uint8_t Data[117]; //Data buffer for serial read
+//uint8_t Data[117]; //Data buffer for serial read
+
 struct status {
 float Time;
 uint8_t secl;              //byte 0 counter
@@ -271,7 +274,7 @@ void loop()
   delay(40);
 }
 
-
+/*
 void sendComms(byte command, uint8_t canID , uint8_t cmd, uint16_t offset, uint16_t length)  //void sendComms(byte command, uint8_t canID = 0, uint8_t cmd = 0x30, uint16_t offset = 0, uint16_t length = 118)
 {
   switch (command)
@@ -338,7 +341,7 @@ void reciveComms(byte command, byte offset, byte length)  //void reciveComms(byt
   }
 }
 
-//******** get serial data *************//
+///////////// get serial data //////////////
 void GetData(uint8_t offset, uint8_t length)
 {
 
@@ -353,7 +356,7 @@ void GetData(uint8_t offset, uint8_t length)
       Data[offset] = Serial1.read();
     }
   }
-}
+}*/
 
 /////////// LCD refresh //////////////////
 void updateScreen(char message[5], float data, char unit[4], int j = 0, int y = 0)
