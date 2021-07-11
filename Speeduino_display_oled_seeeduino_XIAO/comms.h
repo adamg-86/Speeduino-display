@@ -1,6 +1,8 @@
 #ifndef COMMS_H
 #define COMMS_H
 
+//#define status_size 117
+
 uint8_t Data[117]; //Data buffer for serial read
 
 void GetData();

@@ -67,6 +67,7 @@ void reciveComms(byte command, byte offset, byte length)  //void reciveComms(byt
 }
 
 //******** get serial data *************//
+
 void GetData(uint8_t offset, uint8_t length)
 {
 

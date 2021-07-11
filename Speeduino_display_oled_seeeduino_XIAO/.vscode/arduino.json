@@ -1,0 +1,6 @@
+{
+    "port": "COM15",
+    "configuration": "usbstack=arduino,debug=off",
+    "board": "Seeeduino:samd:seeed_XIAO_m0",
+    "sketch": "Speeduino_display_oled_seeeduino_XIAO.ino"
+}

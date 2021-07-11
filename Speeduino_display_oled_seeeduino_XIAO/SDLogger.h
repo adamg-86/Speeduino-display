@@ -1,6 +1,18 @@
+#ifndef SDLOGGER_H
+#define SDLOGGER_H
 
+#include <SPI.h>
+#include <SD.h>
 
+void SDlog();
 
+// SD logger//
+File myFile;
+const byte chipSelect = 3;
+String logBuffer = "";
+bool noSDcard = 0;
+
+/*const char header1[] PROGMEM  = {"\
 "hasSync",\
 "RPM",\
 "MAP", \
@@ -90,3 +102,42 @@
 "wmiPW", \
 "DutyCycle",\
 "Time",\
+"};
+*/
+
+// Time	SecL	RPM	MAP	TPS	AFR	Lambda	MAT	CLT	Engine	DFCO	EGO cor1	Gair	Gbattery	Gwarm	Gbaro	Gammae	Accel Enrich	Current VE	VE1	VE2	PW	AFR Target	Lambda Target	PW2	Duty_Cycle	DutyCycle2	TPS DOT	Advance	Dwell	Battery V	rpm/s	Error #	Error ID	Boost PSI	Boost cut	Hard Launch	Hard Limiter	Idle Control	IAC value	Idle Target RPM	Idle RPM Delta	Baro Pressure	Sync Loss #	Wheel Speed _kph	Wheel Speed _mph	Gear	WB on	Advance 1	Advance 2	Trip Economy	Instant Economy	Fuel Consumption	Trip Meter Km	Odometer Km	Vehicle Speed	Power	Torque	Odometer_KM
+const char header1[] PROGMEM  = {"\
+Time\t\
+SecL\t\
+MAP\t\
+IAT\t\
+CLT\t\
+BAT\t\
+AFR\t\
+EGO\t\
+RPM\t\
+AFR_T\t\
+advanve\t\
+TPS\t\
+baro\t\
+tpsADC\
+"};
+
+const char header2[] PROGMEM  = {"\
+sec\t\
+sec\t\
+kpa\t\
+C\t\
+C\t\
+V\t\
+AFR\t\
+%\t\
+RPM\t\
+AFR\t\
+deg\t\
+%\t\
+kpa\t\
+bit\
+"};
+
+#endif
