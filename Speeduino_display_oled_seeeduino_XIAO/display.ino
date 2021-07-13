@@ -32,7 +32,7 @@ void displayPage(byte _page)
 
   case 0:
 
-    if (status.outputsStatus & 0x01)  // look if the first bit (output 1) is 1 = on
+    if (status.outputsStatus_1)  // look if the first bit (output 1) is 1 = on
     {
       updateScreen("  AFR", status.AFR, "", 100, 1);
     }
@@ -99,6 +99,7 @@ void displayPage(byte _page)
 
   case 6:
     FourDataPage("IAT C", status.IAT, 0, "CLT C", status.CLT, 0, "BAT V", status.BAT, 1, "baro", status.baro, 0);
+    //FourDataPage("adv1", status.advance1, 0, "f load", status.fuelLoad, 0, "i load", status.ingLoad, 0, "pw2", status.PW2, 1);
     break;
 
   case 7:

@@ -59,9 +59,9 @@ uint8_t spark;             //byte 31 Spark related bitfield, launchHard(0), laun
     bool spark_idleControlOn;
     bool spark_sync;
 
-uint16_t rpmDOT;           //byte 32 (lowByte) and 33 (highByte)
+int16_t rpmDOT;           //byte 32 (lowByte) and 33 (highByte)
 uint8_t ethanolPct;        //byte 34
-uint8_t flexCorrection;    //byte 35
+int8_t flexCorrection;    //byte 35
 uint8_t flexIngCorrection; //byte 36
 uint8_t idleLoad;          //byte 37
 uint8_t testOutputs;       //byte 38 testOutputs related bitfield, testEnabled(0), testActive(1)
@@ -96,16 +96,16 @@ uint8_t engineProtectStatus;//byte 83 engineProtectStatus related bitfield, RPM(
     bool engineProtectStatus_OIL;
     bool engineProtectStatus_AFR;
 
-uint16_t fuelLoad;         //byte 84 (lowByte) and 85 (highByte)
-uint16_t ingLoad;          //byte 86 (lowByte) and 87 (highByte)
+int16_t fuelLoad;         //byte 84 (lowByte) and 85 (highByte)
+int16_t ingLoad;          //byte 86 (lowByte) and 87 (highByte)
 uint16_t injAngle;         //byte 88 (lowByte) and 89 (highByte)
 uint8_t idleDuty;          //byte 90
-uint8_t CLIdleTarget;      //byte 91
-uint8_t mapDOT;            //byte 92
-uint8_t vvt1Angle;         //byte 93
-uint8_t vvt1TargetAngle;   //byte 94
-uint8_t vvt1Duty;          //byte 95
-uint16_t flexBoostCorrection; //byte 96 (lowByte) and 97 (highByte)
+uint16_t CLIdleTarget;      //byte 91
+uint16_t mapDOT;            //byte 92
+float vvt1Angle;         //byte 93
+float vvt1TargetAngle;   //byte 94
+float vvt1Duty;          //byte 95
+int16_t flexBoostCorrection; //byte 96 (lowByte) and 97 (highByte)
 uint8_t baroCorrection;    //byte 98
 uint8_t ASEValue;          //byte 99
 uint16_t VSS;              //byte 100 (lowByte) and 101 (highByte)
@@ -118,16 +118,25 @@ uint8_t status4;           //byte 106 status4 related bitfield, wmiEmptyBit(0), 
     bool status4_vvt1Error;
     bool status4_vvt2Error;
 
-uint8_t vvt2Angle;         //byte 107 
-uint8_t vvt2TargetAngle;   //byte 108
-uint8_t vvt2Duty;          //byte 109
+float vvt2Angle;         //byte 107 
+float vvt2TargetAngle;   //byte 108
+float vvt2Duty;          //byte 109
 uint8_t outputsStatus;     //byte 110
+    bool outputsStatus_1;
+    bool outputsStatus_2;
+    bool outputsStatus_3;
+    bool outputsStatus_4;
+    bool outputsStatus_5;
+    bool outputsStatus_6;
+    bool outputsStatus_7;
+    bool outputsStatus_8;
+
 uint8_t fuelTemp;          //byte 111
 uint8_t fuelTempCorrection;//byte 112
 uint8_t VE1;               //byte 113
 uint8_t VE2;               //byte 114
-uint8_t advance1;          //byte 115
-uint8_t advance2;          //byte 116
+int8_t advance1;          //byte 115
+int8_t advance2;          //byte 116
 uint8_t nitrous_status;    //byte 117
 uint8_t TS_SD_Status;      //byte 118
 
