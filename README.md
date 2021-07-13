@@ -7,3 +7,5 @@ hardware:
           microcontroller - seeeduino XIAO
           2 buttons
           SD card module 
+
+# Work-in-progress not a finished product
