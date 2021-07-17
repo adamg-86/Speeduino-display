@@ -4,7 +4,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-#define logSize 111
+#define logSize 114
 #define headerSize logSize*2
 
 void SDlog();
@@ -18,7 +18,8 @@ bool noSDcard = 0;
 
 
 
-const char *header[] PROGMEM  = {"secl","s",\
+const char *header[] PROGMEM  = {"Time","s",\
+"secl", "s",\
 "status1_inj1Status", "",\
 "status1_inj2Status", "",\
 "status1_inj3Status", "",\
