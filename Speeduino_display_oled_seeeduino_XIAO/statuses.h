@@ -3,6 +3,8 @@
 
 void convertData();
 
+String codeVersion = "#";
+
 struct status {
 float Time;
 uint8_t secl;              //byte 0 counter

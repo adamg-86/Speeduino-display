@@ -1,0 +1,1 @@
+make display functions for each important status to simplify changing page order and data type to display.

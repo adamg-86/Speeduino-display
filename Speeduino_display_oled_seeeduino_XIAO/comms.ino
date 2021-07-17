@@ -22,7 +22,11 @@ void sendComms(byte command, uint8_t canID, uint8_t cmd, uint16_t offset, uint16
     Serial1.write(highByte(length)); //length high byte
     break;
 
-    case 'G': // to send aux input data
+  case 'S':
+    Serial1.write('S');
+    break;
+
+  case 'G': // to send aux input data
 
     break;
   }
@@ -82,4 +86,21 @@ void GetData(uint8_t offset, uint8_t length)
       Data[offset] = Serial1.read();
     }
   }
+}
+
+String getVersion()
+{
+  sendComms('S');
+  delay(100);
+  String msg = "";
+  char temp;
+
+  while (Serial1.available()) { 
+    //for (uint8_t sig = 0; sig < 3 ; sig++)
+      //{
+      temp = Serial1.read();
+      msg += char(temp); 
+     // }
+  }
+  return msg;
 }

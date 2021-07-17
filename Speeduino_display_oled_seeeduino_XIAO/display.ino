@@ -145,6 +145,10 @@ void displayPage(byte _page)
       {
         //myFile.println(header1);
         //header 1
+        codeVersion += ": Data Logger by Adam Gauthier \n\n";
+        
+        myFile.print(codeVersion);
+
         for (int i = 0; i < headerSize; i++){
           if (!(i % 2))
           {

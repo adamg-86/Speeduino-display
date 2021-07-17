@@ -16,8 +16,7 @@ String logBuffer = "";
 bool noSDcard = 0;
 
 
-
-
+// Status to log, 
 const char *header[] PROGMEM  = {"Time","s",\
 "secl", "s",\
 "status1_inj1Status", "",\

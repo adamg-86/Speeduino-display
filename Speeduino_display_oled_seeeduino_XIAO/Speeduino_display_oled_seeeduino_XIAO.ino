@@ -43,6 +43,8 @@ void setup()
   display.display();
   delay(2000); // Pause for 2 seconds
 
+  codeVersion = getVersion();
+  
   display.clearDisplay();
 
   noSDcard = !SD.begin(chipSelect);
