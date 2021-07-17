@@ -23,7 +23,7 @@ uint8_t engine;            //byte 2 Engine Status Bitfield, running(0), crank(1)
     bool engine_warmup;
     bool engine_tpsaccaen;
     bool engine_tpsaccden;
-    bool engine_mapassaen;
+    bool engine_mapaccaen;
     bool engine_mapaccden;
 
 uint8_t dwell;             //byte 3 divide by 10
@@ -68,7 +68,7 @@ uint8_t testOutputs;       //byte 38 testOutputs related bitfield, testEnabled(0
     bool testOutputs_testEnabled;//bit 0
     bool testOutputs_testActive;//bit 1
 
-float O2_2;                //byte 39
+float AFR2;                //byte 39
 uint8_t baro;              //byte 40
 //byte 41 to 72 aux input 
 uint8_t tpsADC;            //byte 73
@@ -76,14 +76,14 @@ uint8_t error;             //byte 74
     bool error_Num;        //bit 0
     int error_currentError;//bit 1-7
 
-uint8_t launchCorrection;  //byte 75
+int8_t launchCorrection;  //byte 75
 
 float PW2;                 //byte 76 (lowByte) and 77 (highByte)  //Pulsewidth 2 multiplied by 10 in ms. Have to convert from uS to mS.
 float PW3;                 //byte 78 (lowByte) and 79 (highByte)  //Pulsewidth 3 multiplied by 10 in ms. Have to convert from uS to mS.
 float PW4;                 //byte 80 (lowByte) and 81 (highByte)  //Pulsewidth 4 multiplied by 10 in ms. Have to convert from uS to mS.
 
 uint8_t status3;           //byte 82 status3 related bitfield, resentLockOn(0), nitrousOn(1), fuel2Active(2), vssRefresh(3), halfSync(4), nSquirts(5:7)
-    bool status3_resentLockOn;
+    bool status3_resetLockOn;
     bool status3_nitrousOn;
     bool status3_fuel2Active;
     bool status3_vssRefresh;

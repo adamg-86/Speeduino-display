@@ -143,8 +143,40 @@ void displayPage(byte _page)
       myFile = SD.open("logTest.msl", FILE_WRITE);
       if (myFile)
       {
-        myFile.println(header1);
-        myFile.println(header2);
+        //myFile.println(header1);
+        //header 1
+        for (int i = 0; i < headerSize; i++){
+          if (!(i % 2))
+          {
+            myFile.print(header[i]);
+            if (i < headerSize)
+            {
+              myFile.print("\t");
+            }
+            else
+            {
+              myFile.print("");
+            }
+          }
+        }
+        myFile.println("");
+
+        for (int j = 0; j < headerSize; j++){
+          if (j % 2)
+          {
+            myFile.print(header[j]);
+            if (j < headerSize)
+            {
+              myFile.print("\t");
+            }
+            else
+            {
+              myFile.print("");
+            }
+          }
+        }
+        myFile.println("");
+
         myFile.close();
       }
     }

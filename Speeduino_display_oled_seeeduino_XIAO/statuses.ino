@@ -22,7 +22,7 @@ void convertData()
     status.engine_warmup    = (Data[2] & 0x08);
     status.engine_tpsaccaen = (Data[2] & 0x10);
     status.engine_tpsaccden = (Data[2] & 0x20);
-    status.engine_mapassaen = (Data[2] & 0x40);
+    status.engine_mapaccaen = (Data[2] & 0x40);
     status.engine_mapaccden = (Data[2] & 0x80);
 
   status.dwell = (float)Data[3] / 10;
@@ -67,7 +67,7 @@ void convertData()
     status.testOutputs_testEnabled = (Data[38] & 0x01);
     status.testOutputs_testActive = (Data[38] & 0x02);
 
-  status.O2_2 = (float)Data[39] / 10;
+  status.AFR2 = (float)Data[39] / 10;
   status.baro = Data[40];
   status.tpsADC = Data[73];
   status.error = Data[74];
@@ -79,7 +79,7 @@ void convertData()
   status.PW3 = (float)((Data[79] << 8) | Data[78]) / 1000;
   status.PW4 = (float)((Data[81] << 8) | Data[80]) / 1000;
   status.status3 = Data[82];
-    status.status3_resentLockOn = (Data[82] & 0x01);
+    status.status3_resetLockOn = (Data[82] & 0x01);
     status.status3_nitrousOn    = (Data[82] & 0x02);
     status.status3_fuel2Active  = (Data[82] & 0x04);
     status.status3_vssRefresh   = (Data[82] & 0x08);

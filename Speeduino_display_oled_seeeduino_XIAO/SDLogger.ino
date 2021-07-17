@@ -31,6 +31,8 @@ void SDlog()
   logBuffer += status.baro;
   logBuffer += "\t";
   logBuffer += status.tpsADC;
+  logBuffer += "\t";
+  logBuffer += headerSize;
   
   myFile = SD.open("logTest.msl", FILE_WRITE);
   if (myFile)

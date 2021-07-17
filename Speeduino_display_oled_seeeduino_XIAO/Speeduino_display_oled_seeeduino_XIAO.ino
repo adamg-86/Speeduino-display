@@ -104,7 +104,7 @@ void loop()
 
   if (logFlag)
   {
-    status.Time = (float)(millis() / 1000.0) ;
+    status.Time = (float)millis() / 1000.0 ;
     SDlog();
     logging();
   }
