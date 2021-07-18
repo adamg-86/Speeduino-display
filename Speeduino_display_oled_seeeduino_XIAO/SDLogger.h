@@ -9,7 +9,6 @@
 
 void SDlog();
 
-// SD logger//
 File myFile;
 const byte chipSelect = 3;
 String logBuffer = "";
@@ -19,120 +18,127 @@ int logNumber = 1;
 String fileName = "";
 
 
+
+
+
+
+
+
+
 // Status to log, 
 const char *header[] PROGMEM  = {"Time","s",\
-"secl", "s",\
-"status1_inj1Status", "",\
-"status1_inj2Status", "",\
-"status1_inj3Status", "",\
-"status1_inj4Status", "",\
-"status1_DFCOOn", "",\
-"status1_boostCutFuel", "",\
-"status1_toothLog1Ready", "",\
-"status1_toothLog2Ready", "",\
-"engine_running", "",\
-"engine_crank", "",\
-"engine_ase", "",\
-"engine_warmup", "",\
-"engine_tpsaccaen", "",\
-"engine_tpsaccden", "",\
-"engine_mapaccaen", "",\
-"engine_mapaccden", "",\
-"dwell", "ms",\
+"Secl", "s",\
+"inj1 Status", "",\
+"inj2 Status", "",\
+"inj3 Status", "",\
+"inj4 Status", "",\
+"DFCO On", "",\
+"Boost Cut Fuel", "",\
+"Tooth Log1 Ready", "",\
+"Tooth Log2 Ready", "",\
+"Engine running", "",\
+"Engine crank", "",\
+"Engine ase", "",\
+"Engine warmup", "",\
+"Engine tpsaccaen", "",\
+"Engine tpsaccden", "",\
+"Engine mapaccaen", "",\
+"Engine mapaccden", "",\
+"Dwell", "ms",\
 "MAP", "kpa",\
 "IAT", "C",\
 "CLT", "C",\
-"batCorrection", "%",\
-"BAT", "V",\
+"Gbattery", "%",\
+"Battery V", "V",\
 "AFR", "afr",\
-"EGO", "%",\
-"iatCorrection", "%",\
-"wueCorrection", "%",\
+"EGO cor1", "%",\
+"Gair", "%",\
+"Gwarm", "%",\
 "RPM", "rpm",\
-"AEamount", "%",\
-"corrections", "%",\
-"VE", "",\
-"AFR_T", "afr",\
+"Accel Enrich", "%",\
+"Gammae", "%",\
+"Current VE", "",\
+"AFR Target", "afr",\
 "PW1", "ms",\
-"tpsDOT", "%/s",\
+"TPS DOT", "%/s",\
 "advance", "deg",\
 "TPS", "%",\
-"loopsPerSeconds", "",\
-"freeRAM", "",\
-"boostTarget", "kpa",\
-"boostDuty", "%",\
-"launchHard", "",\
-"launchSoft", "",\
-"hardLimitOn", "",\
-"softLimitOn", "",\
-"boostCutSpark", "",\
+"loops Per Seconds", "",\
+"free RAM", "",\
+"boost Target", "kpa",\
+"boost Duty", "%",\
+"launch Hard", "",\
+"launch Soft", "",\
+"hard LimitOn", "",\
+"soft LimitOn", "",\
+"boost CutSpark", "",\
 "error", "",\
-"idleControlOn", "",\
+"Idle Control On", "",\
 "sync", "",\
 "rpmDOT", "kpa/s",\
-"ethanolPct", "%",\
-"flexCorrection", "%",\
-"flexIngCorrection", "deg",\
+"ethanol Pct", "%",\
+"flex Correction", "%",\
+"flex Ing Correction", "deg",\
 "idleLoad", "",\
-"testEnable", "",\
-"testActive", "",\
+"test Enable", "",\
+"test Active", "",\
 "AFR2", "afr",\
-"baro", "kpa",\
-"tpsADC", "",\
-"error_Num", "",\
-"error_currentError", "",\
-"launchCorrection", "deg",\
+"Baro Pressure", "kpa",\
+"tps ADC", "",\
+"error #", "",\
+"error ID", "",\
+"launch Correction", "deg",\
 "PW2", "ms",\
 "PW3", "ms",\
 "PW4", "ms",\
-"resetLockOn", "",\
-"nitrousOn", "",\
-"fuel2Active", "",\
-"vssRefresh", "",\
-"halfSync", "",\
-"nSquirts", "",\
-"engineProtection_RPM", "",\
-"engineProtection_MAP", "",\
-"engineProtection_OIL", "",\
-"engineProtection_AFR", "",\
-"fuelLoad", "",\
-"ingLoad", "",\
-"injAngle", "deg",\
-"idleDuty", "",\
-"CLIdleTarget", "rpm",\
-"mapDot", "kpa/s",\
-"vvt1Angle", "deg",\
-"vvt1TargetAngle", "deg",\
-"vvt1Duty", "%",\
-"flexBoostCorrection", "kpa",\
-"baroCorrection", "%",\
-"ASEValue", "%",\
-"VSS_kph", "kph",\
-"gear", "",\
-"fuelPressure", "kpa",\
-"oilPressure", "kpa",\
-"wmiPW", "ms",\
-"wmiEmpty", "",\
-"vvt1Error", "",\
-"vvt2Error", "",\
-"vvt2Angle", "deg",\
-"vvt2TargetAngle", "deg",\
-"vvt2Duty", "%",\
-"programmableOutput_1", "",\
-"programmableOutput_2", "",\
-"programmableOutput_3", "",\
-"programmableOutput_4", "",\
-"programmableOutput_5", "",\
-"programmableOutput_6", "",\
-"programmableOutput_7", "",\
-"programmableOutput_8", "",\
-"fuelTemp", "C",\
-"fuelTempCorrection", "%",\
+"reset Lock On", "",\
+"nitrous On", "",\
+"fuel2 Active", "",\
+"vss Refresh", "",\
+"half Sync", "",\
+"n Squirts", "",\
+"engine Protection RPM", "",\
+"engine Protection MAP", "",\
+"engine Protection OIL", "",\
+"engine Protection AFR", "",\
+"fuel Load", "",\
+"ing Load", "",\
+"inj Angle", "deg",\
+"idle Duty", "",\
+"Idle Target", "rpm",\
+"MAP Dot", "kpa/s",\
+"vvt1 Angle", "deg",\
+"vvt1 TargetAngle", "deg",\
+"vvt1 Duty", "%",\
+"Flex Boost Correction", "kpa",\
+"Baro Correction", "%",\
+"ASE Value", "%",\
+"Wheel Speed _kph", "kph",\
+"Gear", "",\
+"fuel Pressure", "kpa",\
+"oil Pressure", "kpa",\
+"wmi PW", "ms",\
+"wmi Empty", "",\
+"vvt1 Error", "",\
+"vvt2 Error", "",\
+"vvt2 Angle", "deg",\
+"vvt2 Target Angle", "deg",\
+"vvt2 Duty", "%",\
+"Wide band O2 On", "",\
+"Shift Light", "",\
+"programmable Output 3", "",\
+"programmable Output 4", "",\
+"programmable Output 5", "",\
+"programmable Output 6", "",\
+"programmable Output 7", "",\
+"programmable Output 8", "",\
+"fuel Temp", "C",\
+"fuel Temp Correction", "%",\
 "VE1", "",\
 "VE2", "",\
-"advance1", "deg",\
-"advance2", "deg",\
-"nitrous_status", "",\
+"Advance 1", "deg",\
+"Advance 2", "deg",\
+"Nitrous Status", "",\
 "TS_SD_Status", "",\
 };
 

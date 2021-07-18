@@ -137,4 +137,5 @@ void convertData()
   status.TS_SD_Status = Data[118];
 
   status.PSI = ((float)status.MAP * 0.145) - 14.5; //convert Kpa to psi
+  //status.PSI = (float)(status.baro - status.MAP) * 0.145;
 }

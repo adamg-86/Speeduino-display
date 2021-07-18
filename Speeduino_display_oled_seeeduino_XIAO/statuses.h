@@ -143,6 +143,7 @@ uint8_t nitrous_status;    //byte 117
 uint8_t TS_SD_Status;      //byte 118
 
 float PSI; //bar to psi conversion
+float BOOST_PSI;
 };
 
 struct status status;

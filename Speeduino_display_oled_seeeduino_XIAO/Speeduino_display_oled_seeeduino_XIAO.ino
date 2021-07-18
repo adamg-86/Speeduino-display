@@ -116,6 +116,7 @@ void loop()
 
   displayPage(page);
 
+  Serial1.flush();
   delay(40); 
 }
 
