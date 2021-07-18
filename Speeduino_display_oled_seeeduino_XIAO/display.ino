@@ -140,12 +140,13 @@ void displayPage(byte _page)
     else if (!noSDcard)
     {
       logFlag = 1;
-      myFile = SD.open("logTest.msl", FILE_WRITE);
+      fileName = logName + logNumber + ".msl";
+      logNumber += 1;
+      
+      myFile = SD.open(fileName, FILE_WRITE);
       if (myFile)
       {
-        //myFile.println(header1);
         //header 1
-        codeVersion += ": Data Logger by Adam Gauthier \n\n";
         
         myFile.print(codeVersion);
 

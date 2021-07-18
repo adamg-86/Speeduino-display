@@ -92,15 +92,12 @@ String getVersion()
 {
   sendComms('S');
   delay(100);
+
   String msg = "";
   char temp;
-
   while (Serial1.available()) { 
-    //for (uint8_t sig = 0; sig < 3 ; sig++)
-      //{
       temp = Serial1.read();
       msg += char(temp); 
-     // }
   }
   return msg;
 }

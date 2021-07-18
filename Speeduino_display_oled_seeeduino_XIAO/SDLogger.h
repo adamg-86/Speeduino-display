@@ -14,6 +14,9 @@ File myFile;
 const byte chipSelect = 3;
 String logBuffer = "";
 bool noSDcard = 0;
+String logName = "Log-";
+int logNumber = 1;
+String fileName = "";
 
 
 // Status to log, 

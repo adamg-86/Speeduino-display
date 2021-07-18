@@ -44,7 +44,8 @@ void setup()
   delay(2000); // Pause for 2 seconds
 
   codeVersion = getVersion();
-  
+  codeVersion += ": SD Data Logger by Adam Gauthier \n\n";
+
   display.clearDisplay();
 
   noSDcard = !SD.begin(chipSelect);

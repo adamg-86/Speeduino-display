@@ -232,7 +232,7 @@ void SDlog()
   logBuffer += "\t";
   logBuffer += status.TS_SD_Status;
   
-  myFile = SD.open("logTest.msl", FILE_WRITE);
+  myFile = SD.open(fileName, FILE_WRITE);
   if (myFile)
   {
     myFile.println(logBuffer);
