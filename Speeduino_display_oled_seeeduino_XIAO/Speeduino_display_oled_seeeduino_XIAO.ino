@@ -46,6 +46,8 @@ void setup()
   codeVersion = getVersion();
   codeVersion += ": SD Data Logger by Adam Gauthier \n\n";
 
+  logNumber = my_flash_store.read();
+
   display.clearDisplay();
 
   noSDcard = !SD.begin(chipSelect);

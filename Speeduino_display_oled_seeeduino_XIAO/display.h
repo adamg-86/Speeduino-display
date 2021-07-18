@@ -4,8 +4,11 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <FlashStorage.h>
 
 #include <Fonts/FreeSansBold9pt7b.h>
+
+FlashStorage(my_flash_store, int);
 
 void updateScreen();
 void displayPage();

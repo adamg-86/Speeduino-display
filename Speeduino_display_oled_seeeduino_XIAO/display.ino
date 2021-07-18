@@ -142,12 +142,13 @@ void displayPage(byte _page)
       logFlag = 1;
       fileName = logName + logNumber + ".msl";
       logNumber += 1;
-      
+
+      my_flash_store.write(logNumber);
+
       myFile = SD.open(fileName, FILE_WRITE);
       if (myFile)
       {
         //header 1
-        
         myFile.print(codeVersion);
 
         for (int i = 0; i < headerSize; i++){
