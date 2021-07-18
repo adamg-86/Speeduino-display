@@ -3,8 +3,73 @@
 #include "statuses.h"
 #include "alarms.h"
 
-/////////// LCD refresh //////////////////
-void updateScreen(char message[5], float data, char unit[4], int j = 0, int y = 0)
+///////// Display Pages /////////////
+void displayPage(byte _page)
+{
+  display.setTextColor(WHITE);
+  display.setFont(&FreeSansBold9pt7b);
+
+  switch (_page)
+  {
+
+  case 0:
+    displayStatus("AFR");
+    break;
+
+  case 1:
+    displayStatus("AFR_graph");
+    break;
+
+  case 2:
+    displayStatus("BOOST");
+    break;
+
+  case 3:
+    displayStatus("BOOST_graph");
+    break;
+
+  case 4:
+    displayStatus("VSS");
+    break;
+
+  case 5:
+    displayStatus("RPM");
+    break;
+
+  case 6:
+    FourStatusDisplay("IAT C", status.IAT, 0, "CLT C", status.CLT, 0, "BAT V", status.BAT, 1, "baro", status.baro, 0);
+    break;
+
+  case 7:
+    FourStatusDisplay("MAP", status.MAP, 0, "AFR", status.AFR, 1, "SPARK", status.advance, 0, "AFR T", status.AFR_T, 1);
+    break;
+
+  case 8:
+    displayStatus("LOG");
+    break;
+
+  case 9:
+    displayStatus("LOG_start");
+    break;
+
+  case 10:
+    displayStatus("RESET");
+    break;
+
+  case 11:
+    displayStatus("RESET_resetting");
+    break;
+
+  case 100:
+      displayStatus("ALARM");
+    break;
+
+  }
+  display.display();
+}
+
+/////////// One status display page //////////////////
+void oneStatusDisplay(char message[5], float data, char unit[4], int j = 0, int y = 0)
 { // data name, data, unit, number after the dot 0.1111, j cursor defautl 10
 
   display.setTextSize(1); //2 with normal font
@@ -19,219 +84,6 @@ void updateScreen(char message[5], float data, char unit[4], int j = 0, int y = 
   display.setCursor(j, 58); //70, 40
   display.setTextSize(1);   //2
   display.print(unit);
-}
-
-///////// Display Pages /////////////
-void displayPage(byte _page)
-{
-  display.setTextColor(WHITE);
-  display.setFont(&FreeSansBold9pt7b);
-
-  switch (_page)
-  {
-
-  case 0:
-
-    if (status.outputsStatus_1)  // look if the first bit (output 1) is 1 = on
-    {
-      updateScreen("  AFR", status.AFR, "", 100, 1);
-    }
-
-    else  // the O2 is off
-    {
-      display.setTextSize(1);
-      display.setCursor(30, 15); 
-      display.println("  AFR");
-
-      display.setTextSize(3);
-      display.setCursor(0, 58);
-      display.print("OFF");
-    }
-    break;
-
-  case 1:
-    graph(status.AFR, 10, 20, "/", 1);
-
-    display.setTextSize(1); //display the AFR target after the AFR reading
-    display.setCursor(75, 16);
-    display.print(status.AFR_T, 1);
-
-    drawMark(10, 20, 11);
-    drawMark(10, 20, 15);
-    break;
-
-  case 2:
-
-    if (status.PSI < 0)
-    {
-      status.PSI = - status.PSI * 2.036; // convert psi to inche of mercury
-      updateScreen(" BOOST", status.PSI, " VAC", 80);
-    }
-
-    else
-    {
-      updateScreen(" BOOST", status.PSI, " PSI", 80);
-    }
-    break;
-
-  case 3:
-    graph(status.PSI, -15, 15, "psi", 0); // make a live graph from -15 to 15 psi
-    drawMark(-15, 15, 0);
-    drawMark(-15, 15, 15); // draw a mark line at 15 psi
-
-    break;
-
-  case 4:
-    updateScreen("Speed", status.VSS, "h", 110);
-
-    display.setTextSize(1);
-    display.setCursor(100, 40);
-    display.print("km");
-    display.drawLine(100, 43, 124, 43, WHITE);
-
-    display.setCursor(110, 20);
-    display.print(status.gear); // gear indicator in the corner
-    break;
-
-  case 5:
-    updateScreen("  RPM", status.RPM, "");
-    break;
-
-  case 6:
-    FourDataPage("IAT C", status.IAT, 0, "CLT C", status.CLT, 0, "BAT V", status.BAT, 1, "baro", status.baro, 0);
-    //FourDataPage("adv1", status.advance1, 0, "f load", status.fuelLoad, 0, "i load", status.ingLoad, 0, "pw2", status.PW2, 1);
-    break;
-
-  case 7:
-    FourDataPage("MAP", status.MAP, 0, "AFR", status.AFR, 1, "SPARK", status.advance, 0, "AFR T", status.AFR_T, 1);
-    break;
-
-  case 8:
-    display.setTextSize(1);
-    display.setCursor(10, 32);
-
-    if (noSDcard)
-    {
-      display.print(" No SD card!");
-    }
-
-    else
-    {
-      if (logFlag)
-      {
-        display.print(" Stop Log?");
-      }
-
-      else
-      {
-        display.print(" Start Log?");
-      }
-    }
-    break;
-
-  case 9:
-    noSDcard = !SD.begin(chipSelect);
-
-    if (logFlag && !noSDcard)
-    {
-      logFlag = 0;
-    }
-
-    else if (!noSDcard)
-    {
-      logFlag = 1;
-      fileName = logName + logNumber + ".msl";
-      logNumber += 1;
-
-      my_flash_store.write(logNumber);
-
-      myFile = SD.open(fileName, FILE_WRITE);
-      if (myFile)
-      {
-        //header 1
-        myFile.print(codeVersion);
-
-        for (int i = 0; i < headerSize; i++){
-          if (!(i % 2))
-          {
-            myFile.print(header[i]);
-            if (i < headerSize)
-            {
-              myFile.print("\t");
-            }
-            else
-            {
-              myFile.print("");
-            }
-          }
-        }
-        myFile.println("");
-
-        for (int j = 0; j < headerSize; j++){
-          if (j % 2)
-          {
-            myFile.print(header[j]);
-            if (j < headerSize)
-            {
-              myFile.print("\t");
-            }
-            else
-            {
-              myFile.print("");
-            }
-          }
-        }
-        myFile.println("");
-
-        myFile.close();
-      }
-    }
-    page = 8;
-    break;
-
-  case 10:
-    display.setTextSize(1);
-    display.setCursor(10, 32);
-    display.print(" Reset ECU?");
-    break;
-
-  case 11:
-    if (status.VSS == 0)
-    {
-      display.setTextSize(1);
-      display.setCursor(10, 32);
-      display.print(" Resetting...");
-      display.display();
-      delay(1000);
-      Serial1.write("U");
-      Serial1.write(1); //ECU reset at next byte after the "U" command
-      delay(1000);
-      page = 0;
-    }
-    
-    else
-    {
-      display.setTextSize(1);
-      display.setCursor(0, 32);
-      display.print("must be stopped");
-      display.display();
-      delay(1000);
-    }
-    break;
-
-  case 100:
-    display.setTextSize(1);
-    display.setCursor(10, 40);
-    display.print(alarmType);
-    display.display();
-    delay(250);
-    
-    if (Alarm() != 1)
-      page = lastPage;
-    break;
-
-  }
-  display.display();
 }
 
 /////////draw line graph///////
@@ -338,7 +190,7 @@ void drawMark(int minSensorVal, int maxSensorVal, int mark)
 }
 
 ////////4 Data display enter the name to display, the data, 0 for int 1 for float////////////
-void FourDataPage(char name1[10], float data1, bool type1, char name2[10], float data2, bool type2, char name3[10], float data3, bool type3, char name4[10], float data4, bool type4)
+void FourStatusDisplay(char name1[10], float data1, bool type1, char name2[10], float data2, bool type2, char name3[10], float data3, bool type3, char name4[10], float data4, bool type4)
 {
 
   display.drawLine(64, 0, 64, 64, WHITE);
@@ -385,4 +237,209 @@ void logging()
   display.setTextSize(3);
   display.setCursor(0, 5); 
   display.println(".");
+}
+
+////////// display status formatting for easier page order changes /////////
+void displayStatus(char _status[])
+{
+  if (_status == "AFR")
+  {
+    if (status.outputsStatus_1)  // look if the first bit (output 1) is 1 = on
+    {
+      oneStatusDisplay("  AFR", status.AFR, "", 100, 1);
+    }
+
+    else  // the O2 is off
+    {
+      display.setTextSize(1);
+      display.setCursor(30, 15); 
+      display.println("  AFR");
+
+      display.setTextSize(3);
+      display.setCursor(0, 58);
+      display.print("OFF");
+    }
+  }
+
+  else if (_status == "AFR_graph")
+  {
+    graph(status.AFR, 10, 20, "/", 1);
+
+    display.setTextSize(1); //display the AFR target after the AFR reading
+    display.setCursor(75, 16);
+    display.print(status.AFR_T, 1);
+
+    drawMark(10, 20, 11);
+    drawMark(10, 20, 15);
+  }
+
+  else if (_status == "BOOST")
+  {
+    if (status.PSI < 0)
+    {
+      status.PSI = - status.PSI * 2.036; // convert psi to inche of mercury
+      oneStatusDisplay(" BOOST", status.PSI, " VAC", 80);
+    }
+
+    else
+    {
+      oneStatusDisplay(" BOOST", status.PSI, " PSI", 80);
+    }
+  }
+
+  else  if (_status == "BOOST_graph")
+  {
+    graph(status.PSI, -15, 15, "psi", 0); // make a live graph from -15 to 15 psi
+    drawMark(-15, 15, 0);
+    drawMark(-15, 15, 15); // draw a mark line at 15 psi
+  }
+  
+  else  if (_status == "VSS")
+  {
+    oneStatusDisplay("Speed", status.VSS, "h", 110);
+
+    display.setTextSize(1);
+    display.setCursor(100, 40);
+    display.print("km");
+    display.drawLine(100, 43, 124, 43, WHITE);
+
+    display.setCursor(110, 20);
+    display.print(status.gear); // gear indicator in the corner
+  }
+
+  else  if (_status == "RPM")
+  {
+    oneStatusDisplay("  RPM", status.RPM, "");
+  }
+
+  else  if (_status == "LOG")
+  {
+    display.setTextSize(1);
+    display.setCursor(10, 32);
+
+    if (noSDcard)
+    {
+      display.print(" No SD card!");
+    }
+
+    else
+    {
+      if (logFlag)
+      {
+        display.print(" Stop Log?");
+      }
+
+      else
+      {
+        display.print(" Start Log?");
+      }
+    }
+  }
+
+  else if (_status == "LOG_start")
+  {
+    noSDcard = !SD.begin(chipSelect);
+
+    if (logFlag && !noSDcard)
+    {
+      logFlag = 0;
+    }
+
+    else if (!noSDcard)
+    {
+      logFlag = 1;
+      fileName = logName + logNumber + ".msl";
+      logNumber += 1;
+
+      my_flash_store.write(logNumber);
+
+      myFile = SD.open(fileName, FILE_WRITE);
+      if (myFile)
+      {
+        ///// header 1 /////
+        myFile.print(codeVersion);
+
+        for (int i = 0; i < headerSize; i++){
+          if (!(i % 2))
+          {
+            myFile.print(header[i]);
+            if (i < headerSize)
+            {
+              myFile.print("\t");
+            }
+            else
+            {
+              myFile.print("");
+            }
+          }
+        }
+        myFile.println("");
+
+        ///// header 2 /////
+        for (int j = 0; j < headerSize; j++){
+          if (j % 2)
+          {
+            myFile.print(header[j]);
+            if (j < headerSize)
+            {
+              myFile.print("\t");
+            }
+            else
+            {
+              myFile.print("");
+            }
+          }
+        }
+        myFile.println("");
+
+        myFile.close();
+      }
+    }
+    page--;
+  }
+
+  else if (_status == "RESET")
+  {
+    display.setTextSize(1);
+    display.setCursor(10, 32);
+    display.print(" Reset ECU?");
+  }
+
+  else if (_status == "RESET_resetting")
+  {
+    if (status.VSS == 0)
+    {
+      display.setTextSize(1);
+      display.setCursor(10, 32);
+      display.print(" Resetting...");
+      display.display();
+      delay(1000);
+      Serial1.write("U");
+      Serial1.write(1); //ECU reset at next byte after the "U" command
+      delay(1000);
+      page = 0;
+    }
+    
+    else
+    {
+      display.setTextSize(1);
+      display.setCursor(0, 32);
+      display.print("must be stopped");
+      display.display();
+      delay(1000);
+      page--;
+    }
+  }
+
+  else if (_status == "ALARM")
+  {
+    display.setTextSize(1);
+    display.setCursor(10, 40);
+    display.print(alarmType);
+    display.display();
+    delay(250);
+    
+    if (Alarm() != 1)
+      page = lastPage;
+  }
 }

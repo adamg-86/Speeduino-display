@@ -8,18 +8,23 @@
 
 #include <Fonts/FreeSansBold9pt7b.h>
 
+/// log number storage in the flash (fake eeprom) it reset when seeeduino xiao get flashed //////////
 FlashStorage(my_flash_store, int);
 
-void updateScreen();
+void oneStatusDisplay();
 void displayPage();
 void graph();
 void drawLine();
 void drawMark();
-void FourDataPage();
+void FourStatusDisplay();
 void logging();
+void displayStatus();
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
+
+////// max page number //////////////
+#define maxPage 9
 
 // Declaration for an SSD1306 display connected to I2C (SDA (4), SCL (5) for seeeduino XIAO)
 
@@ -36,7 +41,7 @@ int _graphHeight = SCREEN_HEIGHT - 22; // 22 is the number of pixels over the gr
 /////// page //////////
 byte page = 0;
 byte lastPage = 0;
-byte maxPage = 9;
+//byte maxPage = 11;
 
 ///// logging flag /////
 bool logFlag = 0; 
