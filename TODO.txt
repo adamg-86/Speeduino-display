@@ -1,1 +1,5 @@
-Calculate the estimated HP live
+-Display max boost
+-Display value while alarm is on
+-Alternate white black (flashing) while Alarm on
+-RPM + VSS page
+-Calculate the estimated HP live
