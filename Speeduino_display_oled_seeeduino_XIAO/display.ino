@@ -13,7 +13,8 @@ void displayPage(byte _page)
   {
 
   case 0:
-    displayStatus("AFR");
+    //displayStatus("AFR");
+    displayStatus("speedRPM");
     break;
 
   case 1:
@@ -441,5 +442,15 @@ void displayStatus(char _status[])
     
     if (Alarm() != 1)
       page = lastPage;
+  }
+
+  else if (_status == "HP")
+  {
+    oneStatusDisplay("  HP", status.HPFromVSS, "", 100, 1);
+  }
+
+  else if (_status == "speedRPM")
+  {
+    oneStatusDisplay("  speed", status.speedFromRPM, "", 100, 0);
   }
 }

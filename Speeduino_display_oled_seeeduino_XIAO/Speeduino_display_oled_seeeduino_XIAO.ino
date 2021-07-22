@@ -23,10 +23,10 @@ struct button {
 struct button button1;
 struct button button2;
 
-bool flag = 0;
+long int loopTimer = 0;
 
-//// timed loop //////
-uint long lastTime;
+//// flag for new data ////
+bool newData = 0;
 
 void setup()
 {
@@ -56,68 +56,81 @@ void setup()
 
 void loop()
 {
-  sendComms('n');
-
-  if (Serial1.available())
+  if ((millis() - loopTimer) >= 100) // 100ms = 10 hz 
   {
-    reciveComms('n');
-  }
+    loopTimer = millis();
 
-  convertData();
+    sendComms('n');
 
-  if (Button(button1))
-  {
-    if (page % 2)
+    if (Serial1.available())
     {
-      page++;
+      reciveComms('n');
+      newData = 1;
     }
 
-    else
+    if (Button(button1))
     {
-      page += 2;
-    }
-  }
+      if (page % 2)
+      {
+        page++;
+      }
 
-  if (Button(button2))
-  {
-    if (page % 2)
+      else
+      {
+        page += 2;
+      }
+    }
+
+    if (Button(button2))
     {
-      page--;
+      if (page % 2)
+      {
+        page--;
+      }
+
+      else
+      {
+        page++;
+      }
     }
 
-    else
+    if ((page > maxPage) && (page != 100))
     {
-      page++;
+      page = 0;
     }
+
+    if (Alarm())
+    {
+      if ((page != lastPage) && (page != 100))
+        lastPage = page;
+        
+      page = 100;
+    }
+
+    if (newData)
+    {
+      lastTime = status.Time;
+      status.Time = (float)millis() / 1000.0 ;
+      lastSpeed = status.VSS;
+      lastSpeedRPM = status.speedFromRPM;
+      display.clearDisplay();
+      convertData();
+      speedFromRPM();
+      calculateHP();
+
+        if (logFlag)
+      {
+        SDlog();
+        logging();
+      }
+
+      displayPage(page);
+    }
+
+    Serial1.flush();
+    newData = 0;
+    //delay(100); 
   }
-
-  if ((page > maxPage) && (page != 100))
-  {
-    page = 0;
-  }
-
-  if (Alarm())
-  {
-    if ((page != lastPage) && (page != 100))
-      lastPage = page;
-      
-    page = 100;
-  }
-
-
-  display.clearDisplay();
-
-  if (logFlag)
-  {
-    status.Time = (float)millis() / 1000.0 ;
-    SDlog();
-    logging();
-  }
-
-  displayPage(page);
-
-  Serial1.flush();
-  delay(40); 
 }
 
 //////////Button short press function ///////////////// logic to avoid changing page if press for too long 

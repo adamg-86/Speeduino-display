@@ -231,7 +231,13 @@ void SDlog()
   logBuffer += status.nitrous_status;
   logBuffer += "\t";
   logBuffer += status.TS_SD_Status;
-  
+  logBuffer += "\t";
+  logBuffer += status.HPFromVSS;
+  logBuffer += "\t";
+  logBuffer += status.HPFromRPM;
+  logBuffer += "\t";
+  logBuffer += status.speedFromRPM;
+
   myFile = SD.open(fileName, FILE_WRITE);
   if (myFile)
   {

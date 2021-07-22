@@ -1,9 +1,31 @@
 #ifndef STATUSES_H
 #define STATUSES_H
 
-void convertData();
+//// HP calculation values ////
+#define RHO_AIR 1.23    //kg/m^3
+#define CAR_CD 0.38
+#define FRONTAL_AREA 0.092903 //in m^2
+#define CAR_MASS 1045   //kg
+#define DRIVER_MASS 85  //kg
 
+#define TIRE_CIRCUM 1.72385   // Tire circumference in m
+
+#define G_RATIO_1 3.136
+#define G_RATIO_2 1.888
+#define G_RATIO_3 1.33
+#define G_RATIO_4 1
+#define G_RATIO_5 0.814
+#define G_RATIO_DIFF 4.1
+
+void convertData();
+void calculateHP();
+void speedFromRPM();
+
+uint16_t massSum = CAR_MASS + DRIVER_MASS;
 String codeVersion = "#";
+float lastTime;
+uint16_t lastSpeed;
+uint16_t lastSpeedRPM;
 
 struct status {
 float Time;
@@ -142,8 +164,14 @@ int8_t advance2;          //byte 116
 uint8_t nitrous_status;    //byte 117
 uint8_t TS_SD_Status;      //byte 118
 
+//// calculated status  ////////////
 float PSI; //bar to psi conversion
 float BOOST_PSI;
+float maxPsi;
+
+int16_t HPFromVSS;
+int16_t HPFromRPM;
+uint16_t speedFromRPM;
 };
 
 struct status status;

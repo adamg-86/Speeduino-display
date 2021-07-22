@@ -4,7 +4,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-#define logSize 114
+#define logSize 117
 #define headerSize logSize*2
 
 void SDlog();
@@ -16,6 +16,8 @@ bool noSDcard = 0;
 String logName = "Log-";
 int logNumber = 1;
 String fileName = "";
+
+
 
 
 
@@ -113,7 +115,7 @@ const char *header[] PROGMEM  = {"Time","s",\
 "Flex Boost Correction", "kpa",\
 "Baro Correction", "%",\
 "ASE Value", "%",\
-"Wheel Speed _kph", "kph",\
+"Wheel Speed _kph", "km/h",\
 "Gear", "",\
 "fuel Pressure", "kpa",\
 "oil Pressure", "kpa",\
@@ -140,6 +142,9 @@ const char *header[] PROGMEM  = {"Time","s",\
 "Advance 2", "deg",\
 "Nitrous Status", "",\
 "TS_SD_Status", "",\
+"HP From Speed", "hp",\
+"HP From RPM", "hp",\
+"Wheel Speed RPM/gear", "km/h",\
 };
 
 #endif

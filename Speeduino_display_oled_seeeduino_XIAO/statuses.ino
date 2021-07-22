@@ -137,5 +137,71 @@ void convertData()
   status.TS_SD_Status = Data[118];
 
   status.PSI = ((float)status.MAP * 0.145) - 14.5; //convert Kpa to psi
-  //status.PSI = (float)(status.baro - status.MAP) * 0.145;
+  //status.PSI = (float)(status.baro - status.MAP) * 0.145; 
+
+  if (status.PSI > status.maxPsi)
+  {
+    status.maxPsi = status.PSI;
+  }
+  
+}
+/*
+Force of the air = (rho * V^2 * A * Cd) / 2  *speed in m/s
+Force of acceleration = acceleration * mass
+*/
+void calculateHP()
+{
+  float deltaSpeed;
+  float deltaSpeedRPM;
+  float deltaTime;
+
+  deltaTime = status.Time - lastTime;
+  deltaSpeed = (float)(status.VSS - lastSpeed) / 3.6;
+  deltaSpeedRPM = (float)(status.speedFromRPM - lastSpeedRPM) / 3.6;
+
+  status.HPFromVSS = deltaSpeed * ((deltaSpeed / deltaTime) * massSum + (RHO_AIR * (status.VSS / 3.6) * (status.VSS / 3.6) * FRONTAL_AREA * CAR_CD) / 2); // 3.6 to bring vss from km/h to m/s
+  status.HPFromRPM = deltaSpeedRPM * ((deltaSpeedRPM / deltaTime) * massSum + (RHO_AIR * (status.speedFromRPM / 3.6) * (status.speedFromRPM / 3.6) * FRONTAL_AREA * CAR_CD) / 2); // 3.6 to bring vss from km/h to m/s
+}
+
+void speedFromRPM()
+{
+  float gear;
+
+  switch (status.gear)
+  {
+  case 0:
+    gear = 0;
+    break;
+
+  case 1:
+    gear = G_RATIO_1;
+    break;
+
+  case 2:
+    gear = G_RATIO_2;
+    break;
+
+  case 3:
+    gear = G_RATIO_3;
+    break;
+
+  case 4:
+    gear = G_RATIO_4;
+    break;
+
+  case 5:
+    gear = G_RATIO_5;
+    break;
+  }
+
+  if (gear == 0)
+  {
+    status.speedFromRPM = 0;
+  }
+
+  else
+  {
+    status.speedFromRPM = (status.RPM / (gear * G_RATIO_DIFF)) * ((TIRE_CIRCUM * 6) / 100);
+  }
+
 }
