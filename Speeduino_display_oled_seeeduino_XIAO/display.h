@@ -24,7 +24,7 @@ void displayStatus();
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 ////// max page number //////////////
-#define maxPage 9
+#define maxPage 11
 
 // Declaration for an SSD1306 display connected to I2C (SDA (4), SCL (5) for seeeduino XIAO)
 

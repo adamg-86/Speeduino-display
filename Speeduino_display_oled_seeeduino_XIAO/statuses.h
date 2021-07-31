@@ -1,15 +1,19 @@
 #ifndef STATUSES_H
 #define STATUSES_H
 
-//// HP calculation values ////
+//// power calculation values ////
 #define RHO_AIR 1.23    //kg/m^3
 #define CAR_CD 0.38
-#define FRONTAL_AREA 0.092903 //in m^2
+#define FRONTAL_AREA 1.711 //in m^2
 #define CAR_MASS 1045   //kg
 #define DRIVER_MASS 85  //kg
+#define TIRE_PRESSURE 1.59 // bar
+
+//#define ROLLING_COEF 0.045 //0.01 tire friction
 
 #define TIRE_CIRCUM 1.72385   // Tire circumference in m
 
+/// gear ratio to calculate the speed /////
 #define G_RATIO_1 3.136
 #define G_RATIO_2 1.888
 #define G_RATIO_3 1.33
@@ -17,15 +21,32 @@
 #define G_RATIO_5 0.814
 #define G_RATIO_DIFF 4.1
 
-void convertData();
-void calculateHP();
-void speedFromRPM();
+#define N_FILTER 30 //number of data points to average in the moving average
 
-uint16_t massSum = CAR_MASS + DRIVER_MASS;
+void convertData(); // convert the raw dato to readable data
+void calculateHP(); // calculate live power (change to calculatePower)
+void speedFromRPM();// calculate speed from RPM and gear selection to be used in a single gear if no vss
+void calculateCdA();// calculate the coefficient of drag 
+int16_t movingAverage();// filter the data for smoother output
+void zeroTo100();   //0 to 100 timer
+
+uint16_t MASS_SUM = CAR_MASS + DRIVER_MASS;
 String codeVersion = "#";
 float lastTime;
-uint16_t lastSpeed;
-uint16_t lastSpeedRPM;
+float lastSpeed;    //in meter/s
+float lastSpeedRPM; //in meter/s
+float CdA;
+
+// moving average buffers //
+int16_t filterBuffer1[N_FILTER];
+int16_t filterBuffer2[N_FILTER];
+int16_t CdABuffer[100];
+int8_t filterIndex1 = 0;
+int8_t filterIndex2 = 0;
+
+//0 to 100 //
+float zeroTo100Time = 0;
+bool timerFlag = 0;
 
 struct status {
 float Time;
@@ -169,9 +190,14 @@ float PSI; //bar to psi conversion
 float BOOST_PSI;
 float maxPsi;
 
+float VSSms;    //speed in meter/s
+int16_t KWFromVSS;
 int16_t HPFromVSS;
+
+int16_t KWFromRPM;
 int16_t HPFromRPM;
 uint16_t speedFromRPM;
+float speedFromRPMms;   //speed in meter/s
 };
 
 struct status status;

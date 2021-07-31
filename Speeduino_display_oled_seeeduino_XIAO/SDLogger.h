@@ -4,7 +4,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-#define logSize 117
+#define logSize 117 //the number of line of the header from line 30 to 147 147-30 = 117
 #define headerSize logSize*2
 
 void SDlog();
@@ -26,8 +26,7 @@ String fileName = "";
 
 
 
-
-// Status to log, 
+// Status to log, units of the status,
 const char *header[] PROGMEM  = {"Time","s",\
 "Secl", "s",\
 "inj1 Status", "",\

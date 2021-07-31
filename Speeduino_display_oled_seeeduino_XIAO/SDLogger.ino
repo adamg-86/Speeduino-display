@@ -1,9 +1,14 @@
 #include "SDLogger.h"
 #include "statuses.h"
 
+
+
+
+
 void SDlog()
 {
 
+  
   logBuffer += status.Time;
   logBuffer += "\t";
   logBuffer += status.secl;

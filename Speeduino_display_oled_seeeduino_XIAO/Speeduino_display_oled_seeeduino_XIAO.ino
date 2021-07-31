@@ -56,7 +56,7 @@ void setup()
 
 void loop()
 {
-  if ((millis() - loopTimer) >= 100) // 100ms = 10 hz 
+  if ((millis() - loopTimer) >= 80) // 100ms = 10 hz 
   {
     loopTimer = millis();
 
@@ -111,12 +111,13 @@ void loop()
     {
       lastTime = status.Time;
       status.Time = (float)millis() / 1000.0 ;
-      lastSpeed = status.VSS;
-      lastSpeedRPM = status.speedFromRPM;
+      lastSpeed = status.VSSms;
+      lastSpeedRPM = status.speedFromRPMms;
       display.clearDisplay();
       convertData();
       speedFromRPM();
       calculateHP();
+      calculateCdA();
 
         if (logFlag)
       {
@@ -124,12 +125,16 @@ void loop()
         logging();
       }
 
+      if (timerFlag)
+      {
+        zeroTo100();
+      }
+
       displayPage(page);
     }
 
     Serial1.flush();
     newData = 0;
-    //delay(100); 
   }
 }
 

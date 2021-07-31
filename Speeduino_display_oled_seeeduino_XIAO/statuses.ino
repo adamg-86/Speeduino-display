@@ -138,6 +138,8 @@ void convertData()
 
   status.PSI = ((float)status.MAP * 0.145) - 14.5; //convert Kpa to psi
   //status.PSI = (float)(status.baro - status.MAP) * 0.145; 
+  status.VSSms = (float)(status.VSS / 3.6);
+  status.speedFromRPMms = (float)(status.speedFromRPM / 3.6);
 
   if (status.PSI > status.maxPsi)
   {
@@ -146,23 +148,58 @@ void convertData()
   
 }
 /*
+all the calculation are in metric
 Force of the air = (rho * V^2 * A * Cd) / 2  *speed in m/s
 Force of acceleration = acceleration * mass
+Force of rolling resistance = mass * 9.81 * Rolling_coeff
+power = force * velocity (speed) ----> joules/s ----> watts
+1 HP = 746 watts
 */
 void calculateHP()
 {
   float deltaSpeed;
   float deltaSpeedRPM;
   float deltaTime;
+  float rollingCoeff;
+  int16_t Fair;
+  int16_t Faccel;
+  int16_t Frolling;
 
-  deltaTime = status.Time - lastTime;
-  deltaSpeed = (float)(status.VSS - lastSpeed) / 3.6;
-  deltaSpeedRPM = (float)(status.speedFromRPM - lastSpeedRPM) / 3.6;
+  deltaTime = status.Time - lastTime; 
+  deltaSpeed = status.VSSms - lastSpeed;
+  deltaSpeedRPM = status.speedFromRPMms - lastSpeedRPM;
 
-  status.HPFromVSS = deltaSpeed * ((deltaSpeed / deltaTime) * massSum + (RHO_AIR * (status.VSS / 3.6) * (status.VSS / 3.6) * FRONTAL_AREA * CAR_CD) / 2); // 3.6 to bring vss from km/h to m/s
-  status.HPFromRPM = deltaSpeedRPM * ((deltaSpeedRPM / deltaTime) * massSum + (RHO_AIR * (status.speedFromRPM / 3.6) * (status.speedFromRPM / 3.6) * FRONTAL_AREA * CAR_CD) / 2); // 3.6 to bring vss from km/h to m/s
+  if (filterIndex1 >= N_FILTER)
+  {
+    filterIndex1 = 0;
+  }
+
+  //the +0.5 is to round to the upper int when .5 and + (casting a float ex: 18.9 to int = 18)
+  rollingCoeff = 0.005 + (1 / TIRE_PRESSURE) * (0.01 + 0.0095 * (status.VSS/100) * (status.VSS/100));
+  Fair = (RHO_AIR * status.VSSms * status.VSSms * FRONTAL_AREA * CAR_CD) / 2; //force of air resistance
+  Faccel = (deltaSpeed / deltaTime) * MASS_SUM; //force from accel decel
+  Frolling = MASS_SUM * rollingCoeff * 9.81; // force from rolling resistance
+
+  filterBuffer1[filterIndex1] = ((status.VSSms * (Faccel + Fair + Frolling)) / 1000) + 0.5; //power in KW
+  //filterBuffer1[filterIndex] = ((status.VSSms * (((deltaSpeed / deltaTime) * MASS_SUM) + ((RHO_AIR * status.VSSms * status.VSSms * FRONTAL_AREA * CAR_CD) / 2) + (MASS_SUM * rollingCoeff * 9.81))) / 1000) + 0.5; //power in KW
+  status.KWFromVSS = 1.1 * movingAverage(N_FILTER, filterBuffer1);
+  status.HPFromVSS = (status.KWFromVSS / 0.746) + 0.5;  //freedom units conversion
+
+  rollingCoeff = 0.005 + (1 / TIRE_PRESSURE) * (0.01 + 0.0095 * (status.speedFromRPM/100) * (status.speedFromRPM/100));
+  Fair = (RHO_AIR * status.speedFromRPMms * status.speedFromRPMms * FRONTAL_AREA * CAR_CD) / 2; //force of air resistance
+  Faccel = (deltaSpeed / deltaTime) * MASS_SUM; //force from accel decel
+  Frolling = MASS_SUM * rollingCoeff * 9.81; // force from rolling resistance
+
+  filterBuffer2[filterIndex1] = ((status.speedFromRPMms * (Faccel + Fair + Frolling)) / 1000) + 0.5; //Kw
+  //filterBuffer2[filterIndex] = ((status.speedFromRPMms * (((deltaSpeedRPM / deltaTime) * MASS_SUM) + ((RHO_AIR * status.speedFromRPMms * status.speedFromRPMms * FRONTAL_AREA * CAR_CD) / 2) + (MASS_SUM * rollingCoeff * 9.81))) / 1000) + 0.5; //Kw
+  status.KWFromRPM = 1.1 * movingAverage(N_FILTER, filterBuffer2);
+  status.HPFromRPM = (status.KWFromRPM / 0.746) + 0.5;  //freedom units conversion
+
+  filterIndex1++;
 }
 
+//speed from RPM and gear selecction to be able to do
+//HP calculation on the selected gear if the car has no speed sensor
 void speedFromRPM()
 {
   float gear;
@@ -204,4 +241,55 @@ void speedFromRPM()
     status.speedFromRPM = (status.RPM / (gear * G_RATIO_DIFF)) * ((TIRE_CIRCUM * 6) / 100);
   }
 
+}
+
+//calculate drag coefficient base on the deceleration from air resistance at speed (yes mechanical drag will affect it but hey)
+void calculateCdA()
+{
+  float deltaSpeed;
+  float deltaTime;
+
+  deltaTime = status.Time - lastTime; // should be 100ms or 0.1s
+  deltaSpeed = status.VSSms - lastSpeed;
+  uint16_t CdASum = 0;
+
+  if (filterIndex2 >= 100)
+  {
+    CdA = (float)((CdASum / 100) / 1000.0);
+    filterIndex2 = 0;
+    CdASum = 0;
+  }
+
+  CdABuffer[filterIndex2] = (-2 * deltaSpeed * MASS_SUM) / (deltaTime * RHO_AIR * status.VSSms * status.VSSms) * 1000;
+  //CdA = (float)(movingAverage(100, CdABuffer) / 1000.0);
+  //CdA = (-2 * deltaSpeed * MASS_SUM) / (deltaTime * RHO_AIR * status.VSSms * status.VSSms);
+
+  CdASum += CdABuffer[filterIndex2];
+
+  filterIndex2++;
+}
+
+int16_t movingAverage(int8_t N, int16_t buffer[100])
+{
+  int16_t sum = 0;
+
+  for (int8_t i = 0; i < N; i++)
+  {
+    sum += buffer[i];
+  }
+
+  return sum/N;
+}
+
+void zeroTo100()
+{
+  if ((status.VSS > 1) && (status.VSS < 100) && (zeroTo100Time < 20))
+  {
+    zeroTo100Time += status.Time - lastTime;
+  }
+
+  else if ((status.VSS >= 100) || (zeroTo100Time > 20))
+  {
+    timerFlag = 0;
+  }
 }

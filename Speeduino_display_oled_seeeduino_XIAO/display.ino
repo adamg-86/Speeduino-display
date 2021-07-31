@@ -14,7 +14,7 @@ void displayPage(byte _page)
 
   case 0:
     //displayStatus("AFR");
-    displayStatus("speedRPM");
+    displayStatus("AFR");
     break;
 
   case 1:
@@ -34,7 +34,7 @@ void displayPage(byte _page)
     break;
 
   case 5:
-    displayStatus("RPM");
+    displayStatus("CdA");
     break;
 
   case 6:
@@ -42,7 +42,8 @@ void displayPage(byte _page)
     break;
 
   case 7:
-    FourStatusDisplay("MAP", status.MAP, 0, "AFR", status.AFR, 1, "SPARK", status.advance, 0, "AFR T", status.AFR_T, 1);
+    //FourStatusDisplay("MAP", status.MAP, 0, "AFR", status.AFR, 1, "SPARK", status.advance, 0, "AFR T", status.AFR_T, 1);
+    FourStatusDisplay("speed", status.VSS, 0, "HP vss", status.HPFromVSS, 0, "speed2", status.speedFromRPM, 0, "hp rpm", status.HPFromRPM, 0);
     break;
 
   case 8:
@@ -54,11 +55,11 @@ void displayPage(byte _page)
     break;
 
   case 10:
-    displayStatus("RESET");
+    displayStatus("zeroTo100");
     break;
 
   case 11:
-    displayStatus("RESET_resetting");
+    displayStatus("zeroTo100Timer");
     break;
 
   case 100:
@@ -446,11 +447,63 @@ void displayStatus(char _status[])
 
   else if (_status == "HP")
   {
-    oneStatusDisplay("  HP", status.HPFromVSS, "", 100, 1);
+    oneStatusDisplay("Power", status.HPFromVSS, "Hp", 100, 0);
   }
 
-  else if (_status == "speedRPM")
+    else if (_status == "HP2")
   {
-    oneStatusDisplay("  speed", status.speedFromRPM, "", 100, 0);
+    oneStatusDisplay("  HP", status.HPFromRPM, "", 100, 0);
+  }
+
+  else  if (_status == "VSS2")
+  {
+    oneStatusDisplay("Speed", status.speedFromRPM, "h", 110);
+
+    display.setTextSize(1);
+    display.setCursor(100, 40);
+    display.print("km");
+    display.drawLine(100, 43, 124, 43, WHITE);
+
+    display.setCursor(110, 20);
+    display.print(status.gear); // gear indicator in the corner
+  }
+
+  else if (_status == "CdA")
+  {
+    oneStatusDisplay(" CdA", CdABuffer[0], "", 100, 1);
+  }
+
+  else if (_status == "zeroTo100")
+  {
+    if (!timerFlag && !zeroTo100Time)
+    {
+      display.setTextSize(2);
+      display.setCursor(10, 40);
+      display.print("0-100?");
+    }
+
+    else
+    {
+      oneStatusDisplay("0 - 100", zeroTo100Time, " s", 100, 1);
+    }
+  }
+
+  else if (_status == "zeroTo100Timer")
+  {
+    if (status.VSS == 0)
+    {
+      zeroTo100Time = 0.0;
+      timerFlag = 1;
+    }
+
+    else
+    {
+      display.setTextSize(1);
+      display.setCursor(0, 32);
+      display.print("must be stopped");
+      display.display();
+      delay(1000);
+    }
+    page--;
   }
 }
