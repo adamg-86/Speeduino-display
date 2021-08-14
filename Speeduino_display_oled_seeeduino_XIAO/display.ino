@@ -42,8 +42,8 @@ void displayPage(byte _page)
     break;
 
   case 7:
-    //FourStatusDisplay("MAP", status.MAP, 0, "AFR", status.AFR, 1, "SPARK", status.advance, 0, "AFR T", status.AFR_T, 1);
-    FourStatusDisplay("speed", status.VSS, 0, "HP vss", status.HPFromVSS, 0, "speed2", status.speedFromRPM, 0, "hp rpm", status.HPFromRPM, 0);
+    FourStatusDisplay("MAP", status.MAP, 0, "AFR", status.AFR, 1, "SPARK", status.advance, 0, "AFR T", status.AFR_T, 1);
+    //FourStatusDisplay("speed", status.VSS, 0, "HP vss", status.HPFromVSS, 0, "speed2", status.speedFromRPM, 0, "hp rpm", status.HPFromRPM, 0);
     break;
 
   case 8:

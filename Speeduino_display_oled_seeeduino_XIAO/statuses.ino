@@ -260,7 +260,7 @@ void calculateCdA()
     CdASum = 0;
   }
 
-  CdABuffer[filterIndex2] = (-2 * deltaSpeed * MASS_SUM) / (deltaTime * RHO_AIR * status.VSSms * status.VSSms) * 1000;
+  CdABuffer[filterIndex2] = ((-2 * deltaSpeed * MASS_SUM) / (deltaTime * RHO_AIR * status.VSSms * status.VSSms)) * 1000;
   //CdA = (float)(movingAverage(100, CdABuffer) / 1000.0);
   //CdA = (-2 * deltaSpeed * MASS_SUM) / (deltaTime * RHO_AIR * status.VSSms * status.VSSms);
 

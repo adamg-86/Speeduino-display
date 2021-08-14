@@ -1,6 +1,8 @@
 #ifndef STATUSES_H
 #define STATUSES_H
 
+//#include <SimpleKalmanFilter.h>
+
 //// power calculation values ////
 #define RHO_AIR 1.23    //kg/m^3
 #define CAR_CD 0.38
@@ -29,6 +31,8 @@ void speedFromRPM();// calculate speed from RPM and gear selection to be used in
 void calculateCdA();// calculate the coefficient of drag 
 int16_t movingAverage();// filter the data for smoother output
 void zeroTo100();   //0 to 100 timer
+
+//SimpleKalmanFilter CdAKalmanFilter(5, 2, 0.001);
 
 uint16_t MASS_SUM = CAR_MASS + DRIVER_MASS;
 String codeVersion = "#";
