@@ -3,7 +3,8 @@
 -Alternate white black (flashing) while Alarm on
 -RPM + VSS page
 -Calculate the estimated HP live -----WIP
--0-100 (0-60) timer start at 1 km/h
+-0-100 (0-60) timer start at 1 km/h - done
 -dyno graph logging with button start and stop if TPS < 70
 -Cd calculator (drive the car to aprox 100km/h on a flat road, and let it coast in neutral then solve the force sum equation = 0 -----> Cd = (-2 * deltaSpeed * sumMass) / (deltaTime * RHO * speed^2 * FrontalArea))
 -integrate Kalman Filter to power calculation and CdA calculation
+-integrate a .xml parser for reading car data from sd card for hp calculation

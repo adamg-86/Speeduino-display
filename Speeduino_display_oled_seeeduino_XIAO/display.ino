@@ -34,7 +34,7 @@ void displayPage(byte _page)
     break;
 
   case 5:
-    displayStatus("CdA");
+    displayStatus("HP2");
     break;
 
   case 6:

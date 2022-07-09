@@ -4,7 +4,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-#define logSize 117 //the number of line of the header from line 30 to 147 147-30 = 117
+#define logSize 118 //the number of line of the header from line 30 to 147 147-30 = 117
 #define headerSize logSize*2
 
 void SDlog();
@@ -144,6 +144,7 @@ const char *header[] PROGMEM  = {"Time","s",\
 "HP From Speed", "hp",\
 "HP From RPM", "hp",\
 "Wheel Speed RPM/gear", "km/h",\
+"CdA", "",\
 };
 
 #endif

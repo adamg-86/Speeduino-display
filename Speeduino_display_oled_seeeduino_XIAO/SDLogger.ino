@@ -242,6 +242,8 @@ void SDlog()
   logBuffer += status.HPFromRPM;
   logBuffer += "\t";
   logBuffer += status.speedFromRPM;
+  logBuffer += "\t";
+  logBuffer += CdA;
 
   myFile = SD.open(fileName, FILE_WRITE);
   if (myFile)
