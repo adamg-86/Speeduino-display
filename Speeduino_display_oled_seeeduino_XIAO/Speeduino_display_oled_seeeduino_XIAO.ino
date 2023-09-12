@@ -39,11 +39,11 @@ void setup()
   pinMode(button2.pin, INPUT_PULLUP);
 
   Serial1.begin(115200);
-  // Serial.begin(115200); //  console Serial
+  //Serial.begin(115200); //  console Serial
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
-  
+
   // display startup Logo
   display.drawBitmap(0, 0, Miata, 128, 64, WHITE);
   display.display();
@@ -124,6 +124,8 @@ void loop()
       speedFromRPM();
       calculateHP();
       calculateCdA();
+      /////
+      //Serial.println(status.MAP);
 
         if (logFlag)
       {

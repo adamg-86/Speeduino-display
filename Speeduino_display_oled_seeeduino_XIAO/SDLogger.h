@@ -3,11 +3,13 @@
 
 #include <SPI.h>
 #include <SD.h>
+#include <FlashStorage.h>
 
 #define logSize 118 //the number of line of the header from line 30 to 147 147-30 = 117
 #define headerSize logSize*2
 
 void SDlog();
+void StartLog();
 
 File myFile;
 const byte chipSelect = 3;

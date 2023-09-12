@@ -350,52 +350,7 @@ void displayStatus(char _status[])
     else if (!noSDcard)
     {
       logFlag = 1;
-      fileName = logName + logNumber + ".msl";
-      logNumber += 1;
-
-      my_flash_store.write(logNumber);
-
-      myFile = SD.open(fileName, FILE_WRITE);
-      if (myFile)
-      {
-        ///// header 1 /////
-        myFile.print(codeVersion);
-
-        for (int i = 0; i < headerSize; i++){
-          if (!(i % 2))
-          {
-            myFile.print(header[i]);
-            if (i < headerSize)
-            {
-              myFile.print("\t");
-            }
-            else
-            {
-              myFile.print("");
-            }
-          }
-        }
-        myFile.println("");
-
-        ///// header 2 /////
-        for (int j = 0; j < headerSize; j++){
-          if (j % 2)
-          {
-            myFile.print(header[j]);
-            if (j < headerSize)
-            {
-              myFile.print("\t");
-            }
-            else
-            {
-              myFile.print("");
-            }
-          }
-        }
-        myFile.println("");
-
-        myFile.close();
-      }
+      StartLog();
     }
     page--;
   }
