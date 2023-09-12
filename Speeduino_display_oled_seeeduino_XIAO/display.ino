@@ -243,7 +243,7 @@ void logging()
 
 ////////// display status formatting for easier page order changes /////////
 void displayStatus(char _status[])
-{
+{///////////////////////////////////////////////////////////////////////////////////////////
   if (_status == "AFR")
   {
     if (status.outputsStatus_1)  // look if the first bit (output 1) is 1 = on
@@ -262,7 +262,7 @@ void displayStatus(char _status[])
       display.print("OFF");
     }
   }
-
+///////////////////////////////////////////////////////////////////////////////////////////
   else if (_status == "AFR_graph")
   {
     graph(status.AFR, 10, 20, "/", 1);
@@ -274,7 +274,7 @@ void displayStatus(char _status[])
     drawMark(10, 20, 11);
     drawMark(10, 20, 15);
   }
-
+//////////////////////////////////////////////////////////////////////////////////////////
   else if (_status == "BOOST")
   {
     if (status.PSI < 0)
@@ -295,7 +295,7 @@ void displayStatus(char _status[])
     drawMark(-15, 15, 0);
     drawMark(-15, 15, 15); // draw a mark line at 15 psi
   }
-  
+  //////////////////////////////////////////////////////////////////////////////////////
   else  if (_status == "VSS")
   {
     oneStatusDisplay("Speed", status.VSS, "h", 110);
@@ -308,12 +308,12 @@ void displayStatus(char _status[])
     display.setCursor(110, 20);
     display.print(status.gear); // gear indicator in the corner
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
   else  if (_status == "RPM")
   {
     oneStatusDisplay("  RPM", status.RPM, "");
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
   else  if (_status == "LOG")
   {
     display.setTextSize(1);
@@ -337,7 +337,7 @@ void displayStatus(char _status[])
       }
     }
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
   else if (_status == "LOG_start")
   {
     noSDcard = !SD.begin(chipSelect);
@@ -399,14 +399,14 @@ void displayStatus(char _status[])
     }
     page--;
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
   else if (_status == "RESET")
   {
     display.setTextSize(1);
     display.setCursor(10, 32);
     display.print(" Reset ECU?");
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
   else if (_status == "RESET_resetting")
   {
     if (status.VSS == 0)
@@ -432,7 +432,7 @@ void displayStatus(char _status[])
       page--;
     }
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
   else if (_status == "ALARM")
   {
     display.setTextSize(1);
@@ -444,17 +444,17 @@ void displayStatus(char _status[])
     if (Alarm() != 1)
       page = lastPage;
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
   else if (_status == "HP")
   {
     oneStatusDisplay("Power", status.HPFromVSS, "Hp", 100, 0);
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
     else if (_status == "HP2")
   {
     oneStatusDisplay("  HP", status.HPFromRPM, "", 100, 0);
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
   else  if (_status == "VSS2")
   {
     oneStatusDisplay("Speed", status.speedFromRPM, "h", 110);
@@ -467,12 +467,12 @@ void displayStatus(char _status[])
     display.setCursor(110, 20);
     display.print(status.gear); // gear indicator in the corner
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
   else if (_status == "CdA")
   {
     oneStatusDisplay(" CdA", CdABuffer[0], "", 100, 1);
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
   else if (_status == "zeroTo100")
   {
     if (!timerFlag && !zeroTo100Time)
@@ -487,7 +487,7 @@ void displayStatus(char _status[])
       oneStatusDisplay("0 - 100", zeroTo100Time, " s", 100, 1);
     }
   }
-
+//////////////////////////////////////////////////////////////////////////////////////
   else if (_status == "zeroTo100Timer")
   {
     if (status.VSS == 0)

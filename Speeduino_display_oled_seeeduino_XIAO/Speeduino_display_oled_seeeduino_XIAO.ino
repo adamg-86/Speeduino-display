@@ -11,6 +11,8 @@
 #include "statuses.h"
 #include "alarms.h"
 
+#include "bitmap.h"
+
 bool Button();
 
 //////// Buttons /////////
@@ -40,8 +42,12 @@ void setup()
   // Serial.begin(115200); //  console Serial
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  
+  // display startup Logo
+  display.drawBitmap(0, 0, Miata, 128, 64, WHITE);
   display.display();
-  delay(2000); // Pause for 2 seconds
+  delay(3000); // Pause for 3 seconds
 
   codeVersion = getVersion();
   codeVersion += ": SD Data Logger by Adam Gauthier \n\n";
