@@ -325,8 +325,7 @@ void StartPull()
   if (myFile)
   {
     ///// header 1 /////
-    //myFile.print(codeVersion);
-    myFile.print("#\"MS3 202103: MS3 2021.03\"\n\n");
+    myFile.print("#\"MS3 202103: MS3 2021.03\"\n\n"); //Header for the file to be opened by virtual dyno
 
     for (int i = 0; i < headerSize; i++)
     {

@@ -15,6 +15,8 @@
 
 bool Button();
 
+FlashStorage(PageMem, int);
+
 //////// Buttons /////////
 struct button {
   uint8_t pin;
@@ -54,6 +56,7 @@ void setup()
 
   logNumber = LogNumberMem.read();
   pullNumber = PullNumberMem.read();
+  page = PageMem.read();
 
   display.clearDisplay();
 
@@ -80,11 +83,13 @@ void loop()
       if (page % 2)
       {
         page++;
+      PageMem.write(page);
       }
 
       else
       {
         page += 2;
+        PageMem.write(page);
       }
     }
 
@@ -93,11 +98,13 @@ void loop()
       if (page % 2)
       {
         page--;
+        PageMem.write(page);
       }
 
       else
       {
         page++;
+        PageMem.write(page);
       }
     }
 
