@@ -7,25 +7,25 @@
 
 #define logSize 118 //the number of line of the header from line 30 to 147 147-30 = 117
 #define headerSize logSize*2
+#define pullSize 5 //the number of line of the header2
+#define header2Size pullSize*2
 
-void SDlog();
+FlashStorage(LogNumberMem, int);
+FlashStorage(PullNumberMem, int);
+void SDlog(int);
 void StartLog();
+void StartPull();
 
 File myFile;
 const byte chipSelect = 3;
 String logBuffer = "";
 bool noSDcard = 0;
 String logName = "Log-";
+String pullName = "Pull-";
 int logNumber = 1;
-String fileName = "";
-
-
-
-
-
-
-
-
+int pullNumber = 1;
+String logFile = "";
+String pullFile = "";
 
 
 // Status to log, units of the status,
@@ -147,6 +147,18 @@ const char *header[] PROGMEM  = {"Time","s",\
 "HP From RPM", "hp",\
 "Wheel Speed RPM/gear", "km/h",\
 "CdA", "",\
+};
+
+
+// Header for pull logs for virtual dyno
+// Status to log, units of the status,
+const char *header2[] PROGMEM  = 
+{
+"Time","s",\
+"MAP", "kpa",\
+"AFR", "afr",\
+"RPM", "rpm",\
+"TPS", "%",\
 };
 
 #endif

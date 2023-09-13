@@ -3,9 +3,8 @@
 
 
 
-
-
-void SDlog()
+// option 1 for datalog and 2 for Pull log
+void SDlog(int option)
 {
 
   
@@ -245,7 +244,16 @@ void SDlog()
   logBuffer += "\t";
   logBuffer += CdA;
 
-  myFile = SD.open(fileName, FILE_WRITE);
+  if (option == 1)
+  {
+    myFile = SD.open(logFile, FILE_WRITE);
+  }
+
+  if (option == 2)
+  {
+    myFile = SD.open(pullFile, FILE_WRITE);
+  }
+
   if (myFile)
   {
     myFile.println(logBuffer);
@@ -257,16 +265,68 @@ void SDlog()
 
 void StartLog()
 {
-  fileName = logName + logNumber + ".msl";
+  logFile = logName + logNumber + ".msl";
   logNumber += 1;
 
-  my_flash_store.write(logNumber);
+  LogNumberMem.write(logNumber);
 
-  myFile = SD.open(fileName, FILE_WRITE);
+  myFile = SD.open(logFile, FILE_WRITE);
   if (myFile)
   {
     ///// header 1 /////
     myFile.print(codeVersion);
+
+    for (int i = 0; i < headerSize; i++)
+    {
+      if (!(i % 2))
+      {
+        myFile.print(header[i]);
+        if (i < headerSize)
+        {
+          myFile.print("\t");
+        }
+        else
+        {
+          myFile.print("");
+        }
+      }
+    }
+    myFile.println("");
+
+    ///// header 2 /////
+    for (int j = 0; j < headerSize; j++){
+      if (j % 2)
+      {
+        myFile.print(header[j]);
+        if (j < headerSize)
+        {
+          myFile.print("\t");
+        }
+        else
+        {
+          myFile.print("");
+        }
+      }
+    }
+    myFile.println("");
+
+    myFile.close();
+  }
+}
+
+void StartPull()
+{
+  pullFile = pullName + pullNumber + ".msl";
+  pullNumber += 1;
+
+  PullNumberMem.write(pullNumber);
+
+  myFile = SD.open(pullFile, FILE_WRITE);
+  if (myFile)
+  {
+    ///// header 1 /////
+    //myFile.print(codeVersion);
+    myFile.print("#\"MS3 202103: MS3 2021.03\"\n\n");
 
     for (int i = 0; i < headerSize; i++)
     {

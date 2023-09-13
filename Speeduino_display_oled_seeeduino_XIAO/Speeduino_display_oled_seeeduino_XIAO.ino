@@ -39,7 +39,7 @@ void setup()
   pinMode(button2.pin, INPUT_PULLUP);
 
   Serial1.begin(115200);
-  //Serial.begin(115200); //  console Serial
+  //Serial.begin(115200); //  console Serial for debug
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
@@ -52,7 +52,8 @@ void setup()
   codeVersion = getVersion();
   codeVersion += ": SD Data Logger by Adam Gauthier \n\n";
 
-  logNumber = my_flash_store.read();
+  logNumber = LogNumberMem.read();
+  pullNumber = PullNumberMem.read();
 
   display.clearDisplay();
 
@@ -124,12 +125,19 @@ void loop()
       speedFromRPM();
       calculateHP();
       calculateCdA();
-      /////
-      //Serial.println(status.MAP);
 
-        if (logFlag)
+      ///// Debug////////////
+      //Serial.println(status.TPS);
+
+      if (logFlag)
       {
-        SDlog();
+        SDlog(1);
+        logging();
+      }
+
+      if (pullFlag)
+      {
+        SDlog(2);
         logging();
       }
 

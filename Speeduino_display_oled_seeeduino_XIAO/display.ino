@@ -47,19 +47,19 @@ void displayPage(byte _page)
     break;
 
   case 8:
-    displayStatus("LOG");
+    displayStatus("PULL");
     break;
 
   case 9:
-    displayStatus("LOG_start");
+    displayStatus("Pull_start");
     break;
 
   case 10:
-    displayStatus("zeroTo100");
+    displayStatus("LOG");
     break;
 
   case 11:
-    displayStatus("zeroTo100Timer");
+    displayStatus("LOG_start");
     break;
 
   case 100:
@@ -460,5 +460,56 @@ void displayStatus(char _status[])
       delay(1000);
     }
     page--;
+  }
+/////////////////////////////////////////////////////////////////////
+  else  if (_status == "PULL")
+  {
+    display.setTextSize(1);
+    display.setCursor(10, 32);
+
+    if (noSDcard)
+    {
+      display.print(" No SD card!");
+    }
+
+    else
+    {
+      if (pullFlag && (status.TPS < 90))
+      {
+        pullFlag = 0;
+      }
+
+      if (pullFlag && (status.TPS >= 90))
+      {
+        display.print(" Fuckin Hell!!");
+      }
+
+      else
+      {
+        display.print(" Start Pull?");
+      }
+    }
+  }
+//////////////////////////////////////////////////////////////////////////////////////
+  else if (_status == "Pull_start")
+  {
+    display.setTextSize(1);
+    display.setCursor(10, 32);
+
+    //noSDcard = !SD.begin(chipSelect);
+    display.print(" FLOOR IT!!");
+
+    //if (!noSDcard)
+    //{
+    //  pullFlag = 0;
+     // page--;
+    //}
+
+    if (!noSDcard && (status.TPS > 90))
+    {
+      pullFlag = 1;
+      StartPull();
+      page--;
+    }
   }
 }

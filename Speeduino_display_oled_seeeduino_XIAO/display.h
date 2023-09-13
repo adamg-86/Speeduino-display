@@ -4,12 +4,12 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <FlashStorage.h>
+//#include <FlashStorage.h>
 
 #include <Fonts/FreeSansBold9pt7b.h>
 
 /// log number storage in the flash (fake eeprom) it reset when seeeduino xiao get flashed //////////
-FlashStorage(my_flash_store, int);
+//FlashStorage(my_flash_store, int);
 
 void oneStatusDisplay();
 void displayPage();
@@ -45,5 +45,6 @@ byte lastPage = 0;
 
 ///// logging flag /////
 bool logFlag = 0; 
+bool pullFlag = 0;
 
 #endif 
