@@ -29,6 +29,8 @@ struct button button2;
 
 long int loopTimer = 0;
 
+byte command = 0;
+
 //// flag for new data ////
 bool newData = 0;
 
@@ -49,11 +51,12 @@ void setup()
   // display startup Logo
   display.drawBitmap(0, 0, Miata, 128, 64, WHITE);
   display.display();
-  delay(3000); // Pause for 3 seconds
+  delay(1500); // Pause for 1.5 seconds
 
   codeVersion = getVersion();
   codeVersion += ": SD Data Logger by Adam Gauthier \n\n";
 
+//  read stored values in memory
   logNumber = LogNumberMem.read();
   pullNumber = PullNumberMem.read();
   page = PageMem.read();
@@ -66,7 +69,7 @@ void setup()
 
 void loop()
 {
-  if ((millis() - loopTimer) >= 80) // 100ms = 10 hz 
+  if ((millis() - loopTimer) >= 100) // 100ms = 10 hz 
   {
     loopTimer = millis();
 
@@ -74,8 +77,12 @@ void loop()
 
     if (Serial1.available())
     {
-      reciveComms('n');
-      newData = 1;
+      command = Serial1.read();
+      reciveComms(command);
+      if (command == 'n')
+      {
+        newData = 1;
+      }
     }
 
     if (Button(button1))
@@ -132,9 +139,6 @@ void loop()
       speedFromRPM();
       calculateHP();
       calculateCdA();
-
-      ///// Debug////////////
-      //Serial.println(status.TPS);
 
       if (logFlag)
       {

@@ -29,6 +29,10 @@ void sendComms(byte command, uint8_t canID, uint8_t cmd, uint16_t offset, uint16
   case 'G': // to send aux input data
 
     break;
+
+    default:
+    
+    break;
   }
 }
 
@@ -36,11 +40,6 @@ void reciveComms(byte command, byte offset, byte length)  //void reciveComms(byt
 {
   byte cmdr = 0;
   
-  if (Serial1.available())
-  {
-    command = Serial1.read();
-  }
-
   switch (command)
   {
     case 'A':
@@ -65,6 +64,10 @@ void reciveComms(byte command, byte offset, byte length)  //void reciveComms(byt
     break;
 
     case 'R': //CANcoms for aux inputs 
+
+    break;
+
+    default:
 
     break;
   }

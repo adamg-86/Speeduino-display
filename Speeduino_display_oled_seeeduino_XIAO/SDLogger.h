@@ -7,8 +7,6 @@
 
 #define logSize 118 //the number of line of the header from line 30 to 147 147-30 = 117
 #define headerSize logSize*2
-#define pullSize 5 //the number of line of the header2
-#define header2Size pullSize*2
 
 FlashStorage(LogNumberMem, int);
 FlashStorage(PullNumberMem, int);
@@ -26,6 +24,7 @@ int logNumber = 1;
 int pullNumber = 1;
 String logFile = "";
 String pullFile = "";
+
 
 
 // Status to log, units of the status,
@@ -147,18 +146,6 @@ const char *header[] PROGMEM  = {"Time","s",\
 "HP From RPM", "hp",\
 "Wheel Speed RPM/gear", "km/h",\
 "CdA", "",\
-};
-
-
-// Header for pull logs for virtual dyno
-// Status to log, units of the status,
-const char *header2[] PROGMEM  = 
-{
-"Time","s",\
-"MAP", "kpa",\
-"AFR", "afr",\
-"RPM", "rpm",\
-"TPS", "%",\
 };
 
 #endif
